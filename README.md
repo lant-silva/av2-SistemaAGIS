@@ -17,11 +17,14 @@ determinar que aquela disciplina foi cursada em outra instituição, mas, não p
 hipótese alguma, excluir a matrícula de um aluno em uma disciplina.
 
 As matrículas devem possibilitar ao sistema gerar duas telas a partir de UDFs.
+
 A primeira é a lista de chamada. As disciplinas podem ter 2 ou 4 horas aula e deve-se fazer
 chamada para cada hora aula. Os professores devem poder lançar a chamada e atualizar a
 chamada a qualquer momento, mas, nunca excluir uma chamada realizada.
+
 A segunda é o histórico do aluno que deve ser possível de ser consultado pela secretaria, que
 mostre um cabeçalho com as principais informações do aluno:
+
 • RA, nome completo, nome do curso, data da primeira matrícula, pontuação do
 vestibular, posição no vestibular
 
