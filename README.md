@@ -29,6 +29,7 @@ mostre um cabeçalho com as principais informações do aluno:
 vestibular, posição no vestibular
 
 E, na sequência, uma lista das matrículas que o aluno foi aprovado
+
 • Código da disciplina, nome da disciplina, nome do professor, nota final, quantidade
 de faltas
 
