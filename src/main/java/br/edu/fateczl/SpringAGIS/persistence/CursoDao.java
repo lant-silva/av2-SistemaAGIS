@@ -9,8 +9,11 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Repository;
+
 import br.edu.fateczl.SpringAGIS.model.Curso;
 
+@Repository
 public class CursoDao implements IIud<Curso>, ICrud<Curso>{
 	private GenericDao gDao;
 	

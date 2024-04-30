@@ -9,9 +9,12 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Repository;
+
 import br.edu.fateczl.SpringAGIS.model.Aluno;
 import br.edu.fateczl.SpringAGIS.model.Curso;
 
+@Repository
 public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 	private GenericDao gDao;
 	

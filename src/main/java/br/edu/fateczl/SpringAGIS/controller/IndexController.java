@@ -9,8 +9,8 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class IndexController {
 	
-	@RequestMapping(name = "viewchoose", value="/viewchoose", method = RequestMethod.GET)
+	@RequestMapping(name = "index", value="/index", method = RequestMethod.GET)
 	public ModelAndView indexGet (ModelMap model) {
-		return new ModelAndView("viewchoose");
+		return new ModelAndView("index");
 	}
 }

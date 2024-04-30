@@ -9,10 +9,13 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Repository;
+
 import br.edu.fateczl.SpringAGIS.model.Disciplina;
 import br.edu.fateczl.SpringAGIS.model.Matricula;
 import br.edu.fateczl.SpringAGIS.model.MatriculaDisciplinas;
 
+@Repository
 public class MatriculaDisciplinaDao implements IDisciplina{
 	private GenericDao gDao;
 	
