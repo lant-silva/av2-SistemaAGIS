@@ -10,9 +10,10 @@
 <body>
 	<nav id="menu">
 		<ul>
+			<li class="menu-item"><a href="indexsecretaria">Home</a></li>
 			<li class="menu-item"><a href="aluno">Aluno</a></li>
 			<li class="menu-item"><a href="matricula">Matricula</a></li>
-			<li class="menu-item right"><a href="viewchoose">Sair</a></li>
+			<li class="menu-item right"><a href="index">Sair</a></li>
 		</ul>
 	</nav>
 </body>

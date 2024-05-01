@@ -9,7 +9,9 @@
 <body>
 	<nav id="menu">
 		<ul>
-			<li class="menu-item"><a href="viewchoose">Voltar</a>
+			<li class="menu-item"><a href="indexaluno">Home</a>
+			<li class="menu-item"><a href="matricula">Matricula</a>
+			<li class="menu-item"><a href="index">Sair</a>
 		</ul>
 	</nav>
 </body>

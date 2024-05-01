@@ -23,8 +23,8 @@ poderá realizar a matricula
 	</br>
 	</br>
 	<div class="menu">
-		<li><a href="aluno">Portal Secretaria</a></li>
-		<li><a href="matricula">Portal Aluno</a></li>
+		<li><a href="indexsecretaria">Portal Secretaria</a></li>
+		<li><a href="indexaluno">Portal Aluno</a></li>
 	</div>
 </div>
 </body>
