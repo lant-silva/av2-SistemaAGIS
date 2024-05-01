@@ -603,6 +603,21 @@ BEGIN
 		AND d.curso_codigo = c.codigo
 	RETURN
 END
+
+CREATE FUNCTION fn_historico(@ra CHAR(9))
+RETURNS @tabela TABLE(
+ra CHAR(9),
+nome VARCHAR(100),
+nome_curso VARCHAR(100),
+data_primeiramatricula DATE,
+pontuacao_vestibular INT,
+posicao_vestibular INT
+)
+AS
+BEGIN
+	
+END 
+
 -- View Alunos
 --------------------------------------------------------------------------
 

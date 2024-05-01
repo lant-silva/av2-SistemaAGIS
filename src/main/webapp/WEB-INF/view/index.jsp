@@ -25,6 +25,7 @@ poderá realizar a matricula
 	<div class="menu">
 		<li><a href="indexsecretaria">Portal Secretaria</a></li>
 		<li><a href="indexaluno">Portal Aluno</a></li>
+		<li><a href="indexprofessor">Portal Professor</a></li>
 	</div>
 </div>
 </body>
