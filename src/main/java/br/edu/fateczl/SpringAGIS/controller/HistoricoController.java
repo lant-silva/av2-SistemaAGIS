@@ -14,11 +14,13 @@ public class HistoricoController {
 	
 	@RequestMapping(name = "historico", value="/historico", method = RequestMethod.GET)
 	public ModelAndView historicoGet (@RequestParam Map<String, String> allRequestParam, ModelMap model) {
+		
 		return new ModelAndView("historico");
 	}
 	
 	@RequestMapping(name = "historico", value="/historico", method = RequestMethod.POST)
 	public ModelAndView historicoPost (@RequestParam Map<String, String> allRequestParam, ModelMap model) {
+		
 		return new ModelAndView("historico");
 	}
 	
