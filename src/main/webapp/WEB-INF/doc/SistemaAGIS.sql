@@ -38,11 +38,12 @@ semestre_ingresso		CHAR(1)			NOT NULL,
 semestre_graduacao		CHAR(6)			NOT NULL,
 ano_limite				CHAR(6)			NOT NULL,
 curso_codigo			INT				NOT NULL,
+data_primeiramatricula	DATE			NOT NULL,
 turno					VARCHAR(10)		NOT NULL	DEFAULT('Tarde')
 PRIMARY KEY(ra)
 FOREIGN KEY(curso_codigo) REFERENCES curso(codigo)
 )
-
+GO
 CREATE TABLE curso(
 codigo					INT				NOT NULL,
 nome					VARCHAR(100)	NOT NULL,
@@ -51,7 +52,14 @@ sigla					VARCHAR(10)		NOT NULL,
 nota_enade				INT				NOT NULL
 PRIMARY KEY(codigo)
 )
-
+GO
+CREATE TABLE professor(
+codigo					INT				NOT NULL,
+nome					VARCHAR(100)	NOT NULL,
+titulacao				VARCHAR(100)	NOT NULL
+PRIMARY KEY(codigo)
+)
+GO
 CREATE TABLE disciplina(
 codigo					INT				NOT NULL,
 nome					VARCHAR(100)	NOT NULL,
@@ -59,11 +67,13 @@ qtd_aulas				INT				NOT NULL,
 horario_inicio			TIME			NOT NULL,
 horario_fim				TIME			NOT NULL,
 dia						VARCHAR(20)		NOT NULL,
-curso_codigo			INT				NOT NULL
+curso_codigo			INT				NOT NULL,
+professor_codigo		INT				NOT NULL
 PRIMARY KEY(codigo)
-FOREIGN KEY(curso_codigo) REFERENCES curso(codigo)
+FOREIGN KEY(curso_codigo) REFERENCES curso(codigo),
+FOREIGN KEY(professor_codigo) REFERENCES professor(codigo)
 )
-
+GO
 CREATE TABLE conteudo(
 codigo					INT				NOT NULL,
 descricao				VARCHAR(200)	NOT NULL,
@@ -71,7 +81,7 @@ codigo_disciplina		INT				NOT NULL
 PRIMARY KEY(codigo)
 FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 )
-
+GO
 CREATE TABLE matricula(
 codigo					INT				NOT NULL,
 aluno_ra				CHAR(9)			NOT NULL,
@@ -79,16 +89,31 @@ data_matricula			DATE			NOT NULL
 PRIMARY KEY(codigo)
 FOREIGN KEY(aluno_ra) REFERENCES aluno(ra)
 )
-
+GO
 CREATE TABLE matricula_disciplina(
 codigo_matricula		INT				NOT NULL,
 codigo_disciplina		INT				NOT NULL,
-situacao				VARCHAR(50)		NOT NULL
+situacao				VARCHAR(50)		NOT NULL,
+qtd_faltas			INT				NOT NULL,
+nota_final				FLOAT			NOT NULL
 PRIMARY KEY(codigo_matricula, codigo_disciplina)
 FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo),
 FOREIGN KEY(codigo_matricula) REFERENCES matricula(codigo)
 )
-
+GO
+CREATE TABLE aula(
+codigo					INT				NOT NULL,
+codigo_conteudo			INT				NOT NULL,
+data_aula				DATE			NOT NULL
+PRIMARY KEY(codigo)
+FOREIGN KEY(codigo_conteudo) REFERENCES conteudo(codigo)
+)
+GO
+CREATE TABLE matricula_aula(
+matricula_codigo		INT				NOT NULL,
+aula_codigo				INT				NOT NULL,
+presenca				CHAR(1)			NOT NULL
+)
 
 -- IND01 - Stored Procedures
 ---------------------------------------------------------------------------------
@@ -445,7 +470,7 @@ BEGIN
 		ORDER BY codigo DESC
 
 		INSERT INTO matricula VALUES
-		(@novocodigo, @ra, GETDATE())
+		(@novocodigo, @ra, GETDATE()) -- o ultimo valor é só um placeholder
 
 
 		-- Como a lógica para atualização da matricula será realizada por outra procedure,
@@ -470,7 +495,7 @@ BEGIN
 		END
 
 		INSERT INTO matricula VALUES
-		(@codigomatricula, @ra, '01-01-2024')
+		(@codigomatricula, @ra, GETDATE(), GETDATE())
 
 		INSERT INTO matricula_disciplina (codigo_matricula, codigo_disciplina, situacao)
 		SELECT * FROM dbo.fn_matriculainicial(@codigomatricula)
@@ -517,12 +542,14 @@ CREATE FUNCTION fn_matriculainicial(@codigomatricula INT)
 RETURNS @tabela TABLE(
 codigo_matricula INT,
 codigo_disciplina INT,
-situacao VARCHAR(50)
+situacao VARCHAR(50),
+qtd_faltas INT,
+nota_final FLOAT
 )
 AS
 BEGIN
-	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
-	SELECT @codigomatricula, d.codigo, 'Não cursado' AS situacao
+	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao, qtd_faltas, nota_final)
+	SELECT @codigomatricula, d.codigo, 'Não cursado' AS situacao, 0 AS qtd_faltas, 0.0 AS nota_final
 	FROM matricula m, curso c, disciplina d, aluno a
 	WHERE d.curso_codigo = c.codigo
 		AND a.curso_codigo = c.codigo
@@ -537,12 +564,14 @@ CREATE FUNCTION fn_ultimamatricula(@codigomatricula INT)
 RETURNS @tabela TABLE(
 codigo_matricula INT,
 codigo_disciplina INT,
-situacao VARCHAR(50)
+situacao VARCHAR(50),
+qtd_faltas INT,
+nota_final FLOAT
 )
 AS
 BEGIN
-	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
-	SELECT @codigomatricula AS codigo_matricula, md.codigo_disciplina, md.situacao 
+	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao, qtd_faltas, nota_final)
+	SELECT @codigomatricula AS codigo_matricula, md.codigo_disciplina, md.situacao, md.qtd_faltas, md.nota_final
 	FROM matricula_disciplina md, matricula m, aluno a, curso c
 	WHERE md.codigo_matricula = @codigomatricula	
 		AND m.codigo = @codigomatricula
@@ -607,16 +636,50 @@ END
 CREATE FUNCTION fn_historico(@ra CHAR(9))
 RETURNS @tabela TABLE(
 ra CHAR(9),
-nome VARCHAR(100),
+nome_aluno VARCHAR(100),
 nome_curso VARCHAR(100),
 data_primeiramatricula DATE,
 pontuacao_vestibular INT,
-posicao_vestibular INT
+posicao_vestibular INT,
+codigo_disciplina INT,
+nome_discilplina VARCHAR(100),
+nome_professor VARCHAR(100),
+nota_final FLOAT,
+qtd_faltas INT
 )
 AS
 BEGIN
+	DECLARE @ultimamatricula TABLE(
+		codigo_matricula INT,
+		codigo_disciplina INT,	
+		situacao VARCHAR(50),
+		qtd_faltas INT,
+		nota_final FLOAT
+	)
 	
+	INSERT INTO @ultimamatricula (codigo_matricula, codigo_disciplina, situacao, qtd_faltas, nota_final) 
+	(SELECT * FROM dbo.fn_ultimamatricula(@ra))
+
+	INSERT INTO @tabela (ra, nome_aluno, nome_curso, nome_discilplina, nome_professor, pontuacao_vestibular, posicao_vestibular, data_primeiramatricula, codigo_disciplina, nota_final, qtd_faltas)
+	SELECT @ra, a.nome, c.nome, d.nome, p.nome, a.pontuacao_vestibular, a.posicao_vestibular, a.data_primeiramatricula, u.codigo_disciplina, u.nota_final, u.qtd_faltas
+	FROM @ultimamatricula u, aluno a, professor p, disciplina d, matricula_disciplina md, curso c
+	WHERE a.ra = @ra
+		AND a.curso_codigo = c.codigo
+		AND u.codigo_disciplina = d.codigo
+		AND d.professor_codigo = p.codigo
+	RETURN
 END 
+
+
+-----------------------------------------------------------------------------
+CREATE VIEW v_historico
+AS
+SELECT a.ra AS ra, a.nome AS nome_aluno, c.nome AS nome_curso, a.data_primeiramatricula AS data_primeiramatricula,
+		a.pontuacao_vestibular AS pontuacao_vestibular, a.posicao_vestibular AS posicao_vestibular, d.codigo AS codigo_disciplina,
+		d.nome AS nome_disciplina, p.nome AS nome_professor, md.nota_final AS nota_final, md.qtd_faltas AS qtd_faltas
+FROM aluno a, curso c, disciplina d, professor p, matricula_disciplina md
+WHERE a.ra = md.
+
 
 -- View Alunos
 --------------------------------------------------------------------------
