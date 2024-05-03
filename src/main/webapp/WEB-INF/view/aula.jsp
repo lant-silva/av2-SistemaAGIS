@@ -20,24 +20,61 @@
 			<table>
 				<tr>
 					<td>
+					<!-- Combobox para achar o professor -->
 						<select class="input_data" id="professor" name="professor">
 								<option value="0">Escolha um Professor</option>
 								<c:forEach var="p" items="${professores }">
-									<c:if test="${(empty professor) || (p.codigo ne aluno.curso.codigo)}">
-										<option value="${c.codigo }">
-											<c:out value="${c.nome }"/>
-										</option>
-									</c:if>
-									<c:if test="${c.codigo eq aluno.curso.codigo }">
-										<option value="${c.codigo }" selected="selected">
-											<c:out value="${c.nome }"/>
-										</option>
-									</c:if>
+									<option value="${p.codigo }">
+										<c:out value="${p.nome }"/>
+									</option>
 								</c:forEach>
 						</select>
 					</td>
+					<td>
+						<input type="submit" id="botao" name="botao" value="Buscar Professor">
+					<td />
+				</tr>
+				</br>
+				<tr>
+					<!-- Caso o professor tenha sido encontrado, mostrar as disciplinas -->
+					<c:choose>
+						<c:when test="${foundP eq true }">
+							<select class="input_data" id="professor" name="professor">
+							<option value="0">Escolha a Disciplina</option>
+							<c:forEach var="d" items="${disciplinas }">
+								<option value="${d.codigo }">
+									<c:out value="${d.nome }"/>
+								</option>
+							</c:forEach>
+							</select>
+							<td>
+								<input type="submit" id="botao" name="botao" value="Iniciar Gerenciamento">
+							<td />
+						</c:when>
+						<c:otherwise>
+							<H2>
+								<b><c:out value="${erro }" /></b>
+							</H2>
+						</c:otherwise>
+					</c:choose>
+					
+					<c:if test="${not empty conteudos }">
+					
+					</c:if>
 				</tr>
 			</table>
+			</br>
+			<div>
+				<c:if test="${not empty alunos }">
+					<table class="table_round">
+						<thead>
+							<tr>
+								<th>Nome</th>
+							</tr>
+						</thead>
+					</table>
+				</c:if>
+			</div>
 		</form>
 	</div>
 </body>

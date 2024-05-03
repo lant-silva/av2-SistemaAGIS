@@ -44,6 +44,51 @@
 			</c:if>
 		</div>
 		</br>
+		<div align="center">
+			<c:if test="${not empty aluno }">
+				<table class="table_round">
+					<thead>
+						<tr>
+							<th>RA</th>
+							<th>Nome Completo</th>
+							<th>Nome do Curso</th>
+							<th>Data Primeira Matricula</th>
+							<th>Pontuação Vestibular</th>
+							<th>Posição Vestibular</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><c:out value="${aluno.ra}" /></td>
+							<td><c:out value="${aluno.nome}" /></td>
+							<td><c:out value="${aluno.curso.nome}" /></td>
+							<td><c:out value="${aluno.dataPrimeiraMatricula}" /></td>
+							<td><c:out value="${aluno.pontuacaoVestibular}" /></td>
+							<td><c:out value="${aluno.posicaoVestibular}" /></td>
+						</tr>
+					</tbody>
+				</table>
+				<table>
+					<thead>
+						<tr>
+							<th>Cod. Disciplina</th>
+							<th>Nome Disciplina</th>
+							<th>Professor</th>
+							<th>Qtd. de Faltas</th>
+							<th>Nota Final</th>
+						</tr>
+					</thead>
+					<tbody>
+						<c:forEach var="d" items="${disciplinas }">
+							<tr>
+								<td><c:out value="${d.codigo }" /></td>
+								<td><c:out value="${d.codigo }" /></td>
+							</tr>
+						</c:forEach>
+					</tbody>
+				</table>
+			</c:if>
+		</div>
 	</form>
 </body>
 </html>
