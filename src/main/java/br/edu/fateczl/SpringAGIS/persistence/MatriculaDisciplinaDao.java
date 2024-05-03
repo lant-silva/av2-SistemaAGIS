@@ -16,7 +16,7 @@ import br.edu.fateczl.SpringAGIS.model.Matricula;
 import br.edu.fateczl.SpringAGIS.model.MatriculaDisciplinas;
 
 @Repository
-public class MatriculaDisciplinaDao implements IDisciplina{
+public class MatriculaDisciplinaDao implements IMatricula{
 	private GenericDao gDao;
 	
 	public MatriculaDisciplinaDao(GenericDao gDao) {

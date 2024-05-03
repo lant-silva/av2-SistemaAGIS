@@ -82,7 +82,10 @@
 						<c:forEach var="d" items="${disciplinas }">
 							<tr>
 								<td><c:out value="${d.codigo }" /></td>
-								<td><c:out value="${d.codigo }" /></td>
+								<td><c:out value="${d.nome }" /></td>
+								<td>PLACEHOLDER</td>
+								<td><c:out value="${d.qtdFaltas }" /></td>
+								<td><c:out value="${d.notaFinal }" /></td>
 							</tr>
 						</c:forEach>
 					</tbody>

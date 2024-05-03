@@ -6,10 +6,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.stereotype.Repository;
 
 import br.edu.fateczl.SpringAGIS.model.Professor;
 
+@Repository
 public class ProfessorDao implements ICrud<Professor>, IIud<Professor>{
 	private GenericDao gDao;
 	
@@ -54,6 +58,21 @@ public class ProfessorDao implements ICrud<Professor>, IIud<Professor>{
 
 	@Override
 	public List<Professor> listar() throws SQLException, ClassNotFoundException {
-		
+		List<Professor> professores = new ArrayList<>();
+		Connection c = gDao.getConnection();
+		String sql = "SELECT * FROM professor";
+		PreparedStatement ps = c.prepareStatement(sql);
+		ResultSet rs = ps.executeQuery();
+		while(rs.next()) {
+			Professor p = new Professor();
+			p.setCodigo(rs.getInt("codigo"));
+			p.setNome(rs.getString("nome"));
+			p.setTitulacao(rs.getString("titulacao"));
+			professores.add(p);
+		}
+		rs.close();
+		ps.close();
+		c.close();
+		return professores;
 	}
 }
