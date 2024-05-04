@@ -18,8 +18,6 @@ public class AulaController {
 	@Autowired
 	GenericDao gDao;
 	
-	@Autowired 
-	
 	@RequestMapping(name = "aula", value="/aula", method = RequestMethod.GET)
 	public ModelAndView aulaGet (@RequestParam Map<String, String> allRequestParam, ModelMap model) {
 		
@@ -28,7 +26,7 @@ public class AulaController {
 	
 	@RequestMapping(name = "aula", value="/aula", method = RequestMethod.POST)
 	public ModelAndView aulaPost (@RequestParam Map<String, String> allRequestParam, ModelMap model) {
-		
-		return new ModelAndView("aula");
+	
+			return new ModelAndView("aula");
 	}
 }
