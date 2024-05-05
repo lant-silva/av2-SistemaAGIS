@@ -76,16 +76,18 @@
 							<th>Professor</th>
 							<th>Qtd. de Faltas</th>
 							<th>Nota Final</th>
+							<th>Situação</th>
 						</tr>
 					</thead>
 					<tbody>
 						<c:forEach var="d" items="${disciplinas }">
 							<tr>
-								<td><c:out value="${d.codigo }" /></td>
-								<td><c:out value="${d.nome }" /></td>
-								<td>PLACEHOLDER</td>
+								<td><c:out value="${d.disciplina.codigo }" /></td>
+								<td><c:out value="${d.disciplina.nome }" /></td>
+								<td><c:out value="${d.disciplina.professor.nome }"/></td>
 								<td><c:out value="${d.qtdFaltas }" /></td>
 								<td><c:out value="${d.notaFinal }" /></td>
+								<td><c:out value="${d.situacao }" /></td>
 							</tr>
 						</c:forEach>
 					</tbody>

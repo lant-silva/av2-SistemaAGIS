@@ -14,6 +14,5 @@ public class Matricula {
 	String alunoRa;
 	String turno;
 	String dataMatricula;
-	String dataPrimeiraMatricula;
 	int codigoCurso;
 }

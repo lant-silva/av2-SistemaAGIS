@@ -45,8 +45,7 @@ public class MatriculaController {
 		String cmd = allRequestParam.get("botao");
 		String ra = allRequestParam.get("ra");
 		Matricula matricula = new Matricula();
-		List<String> disciplinasSelecionadas = new ArrayList<>();
-		disciplinasSelecionadas = requestCheckbox(disciplinasSelecionadas);
+		String[] disciplinasSelecionadas = allRequestParam.containsKey("disciplinasSelecionadas") ? allRequestParam.get("disciplinasSelecionadas").split(",") : new String[0];
 		
 		String saida ="";
 		String erro="";
@@ -67,6 +66,11 @@ public class MatriculaController {
 			if(cmd.contains("Confirmar Matricula")) {
 				inserirMatricula(disciplinasSelecionadas, ra);
 				saida = "Matricula finalizada";
+			}
+			if(cmd.contains("Consultar Matricula")) {
+				a.setRa(ra);
+				matriculaDisciplinas = listarDisciplinas(ra);
+				listar = true;
 			}
 		} catch (SQLException | ClassNotFoundException e) {
 			erro = e.getMessage();
@@ -115,7 +119,7 @@ public class MatriculaController {
 	}
 
 
-	private String inserirMatricula(List<String> disciplinasSelecionadas, String ra) throws NumberFormatException, ClassNotFoundException, SQLException {
+	private String inserirMatricula(String[] disciplinasSelecionadas, String ra) throws NumberFormatException, ClassNotFoundException, SQLException {
 		String codigoMatricula = mdDao.gerarMatricula(ra);
 		System.out.println(codigoMatricula);
 		String saida = null;

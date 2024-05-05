@@ -17,5 +17,6 @@ public class Disciplina {
 	String horarioFim;
 	String diaSemana;
 	int cursoCodigo;
-	int professorCodigo;
+	String cursoNome;
+	Professor professor;
 }

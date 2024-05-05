@@ -2,7 +2,9 @@ USE master
 DROP DATABASE agis
 
 CREATE DATABASE agis
+GO
 USE agis
+GO
 
 /*
  Banco de Dados - Sistema AGIS
@@ -113,6 +115,9 @@ CREATE TABLE matricula_aula(
 matricula_codigo		INT				NOT NULL,
 aula_codigo				INT				NOT NULL,
 presenca				CHAR(1)			NOT NULL
+PRIMARY KEY(matricula_codigo, aula_codigo)
+FOREIGN KEY(matricula_codigo) REFERENCES matricula(codigo),
+FOREIGN KEY(aula_codigo) REFERENCES aula(codigo)
 )
 
 -- IND01 - Stored Procedures
@@ -340,7 +345,7 @@ BEGIN
 	BEGIN
 		INSERT INTO aluno (cpf, ra, nome, nome_social, data_nasc, telefone_celular, telefone_residencial, email_pessoal, email_corporativo,
 		data_segundograu, instituicao_segundograu, pontuacao_vestibular, posicao_vestibular,
-		ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo, turno) VALUES
+		ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo, data_primeiramatricula, turno) VALUES
 		(@cpf,
 		 @ra,
 		 @nome,
@@ -359,8 +364,9 @@ BEGIN
 		 @semestregraduacao,
 		 @anolimite,
 		 @cursocodigo,
+		 GETDATE(),
 		 @turno)
-
+		 -- adicionar data primeira matricula
 		 EXEC sp_gerarmatricula @ra, @codigomatricula
 		 SET @saida = 'Aluno inserido'
 	END
@@ -476,7 +482,7 @@ BEGIN
 		-- Como a lógica para atualização da matricula será realizada por outra procedure,
 		-- eu apenas reinsiro a ultima matricula feita pelo aluno
 		INSERT INTO matricula_disciplina
-		SELECT @novocodigo, codigo_disciplina, situacao FROM dbo.fn_ultimamatricula(@codigomatricula)
+		SELECT @novocodigo, codigo_disciplina, situacao, qtd_faltas, nota_final FROM dbo.fn_ultimamatricula(@codigomatricula)
 
 		-- Retorno o novo codigo
 		SET @codigomatricula = @novocodigo
@@ -495,9 +501,9 @@ BEGIN
 		END
 
 		INSERT INTO matricula VALUES
-		(@codigomatricula, @ra, GETDATE(), GETDATE())
+		(@codigomatricula, @ra, GETDATE())
 
-		INSERT INTO matricula_disciplina (codigo_matricula, codigo_disciplina, situacao)
+		INSERT INTO matricula_disciplina (codigo_matricula, codigo_disciplina, situacao, qtd_faltas, nota_final)
 		SELECT * FROM dbo.fn_matriculainicial(@codigomatricula)
 	END
 END
@@ -587,13 +593,17 @@ RETURNS @tabela TABLE(
 codigo_matricula INT,
 codigo INT,
 nome VARCHAR(100),
+codigo_professor INT,
+nome_professor VARCHAR(100),
 qtd_aulas INT,
 horario_inicio TIME,
 horario_fim TIME,
 dia VARCHAR(20),
 curso_codigo INT,
 data_matricula CHAR(6),
-situacao VARCHAR(50)
+situacao VARCHAR(50),
+qtd_faltas INT,
+nota_final FLOAT
 )
 AS
 BEGIN
@@ -618,18 +628,21 @@ BEGIN
 	FROM matricula WHERE aluno_ra = @ra
 	ORDER BY codigo DESC
 
-	INSERT INTO @tabela (codigo_matricula, codigo, nome, qtd_aulas, horario_inicio, horario_fim, dia, curso_codigo, data_matricula, situacao)	
+	INSERT INTO @tabela (codigo_matricula, codigo, nome, codigo_professor, nome_professor, qtd_aulas, horario_inicio, horario_fim, dia, curso_codigo, data_matricula, situacao, qtd_faltas, nota_final)	
 	SELECT CAST(md.codigo_matricula AS VARCHAR), CAST(d.codigo AS VARCHAR),
-		   d.nome, CAST(d.qtd_aulas AS VARCHAR),
+		   d.nome, CAST(p.codigo AS VARCHAR), p.nome, CAST(d.qtd_aulas AS VARCHAR),
 		   d.horario_inicio, d.horario_fim, d.dia AS dia, 
-		   CAST(d.curso_codigo AS VARCHAR), @data, md.situacao
-	FROM matricula_disciplina md, disciplina d, aluno a, matricula m, curso c
+		   CAST(d.curso_codigo AS VARCHAR), @data, md.situacao,
+		   CAST(md.qtd_faltas AS VARCHAR), CAST(md.nota_final AS VARCHAR)
+	FROM matricula_disciplina md, disciplina d, aluno a, matricula m, curso c, professor p
 	WHERE m.codigo = @codigomatricula
 		AND m.aluno_ra = a.ra
 		AND md.codigo_matricula = @codigomatricula
 		AND md.codigo_disciplina = d.codigo
 		AND a.curso_codigo = c.codigo
 		AND d.curso_codigo = c.codigo
+		AND p.codigo = d.professor_codigo
+	ORDER BY situacao ASC
 	RETURN
 END
 
@@ -672,14 +685,9 @@ END
 
 
 -----------------------------------------------------------------------------
-CREATE VIEW v_historico
-AS
-SELECT a.ra AS ra, a.nome AS nome_aluno, c.nome AS nome_curso, a.data_primeiramatricula AS data_primeiramatricula,
-		a.pontuacao_vestibular AS pontuacao_vestibular, a.posicao_vestibular AS posicao_vestibular, d.codigo AS codigo_disciplina,
-		d.nome AS nome_disciplina, p.nome AS nome_professor, md.nota_final AS nota_final, md.qtd_faltas AS qtd_faltas
-FROM aluno a, curso c, disciplina d, professor p, matricula_disciplina md
-WHERE a.ra = md.
-
+select * from aluno
+SELECT * FROM matricula_disciplina
+SELECT * FROM dbo.fn_listarultimamatricula(202416711) ORDER BY situacao, nome ASC
 
 -- View Alunos
 --------------------------------------------------------------------------
@@ -688,7 +696,7 @@ CREATE VIEW v_alunos
 AS
 SELECT a.cpf AS cpf, a.ra AS ra, a.nome AS nome, a.nome_social AS nome_social, a.data_nasc AS data_nasc, a.telefone_celular AS telefone_celular, a.telefone_residencial AS telefone_residencial, a.email_pessoal AS email_pessoal, a.email_corporativo AS email_corporativo, a.data_segundograu AS data_segundograu, 
 	   a.instituicao_segundograu AS instituicao_segundograu, a.pontuacao_vestibular AS pontuacao_vestibular, a.posicao_vestibular AS posicao_vestibular, a.ano_ingresso AS ano_ingresso, a.semestre_ingresso AS semestre_ingresso,
-	   a.semestre_graduacao AS semestre_graduacao, a.ano_limite AS ano_limite, c.sigla AS curso_sigla, a.curso_codigo AS curso_codigo, a.turno AS turno
+	   a.semestre_graduacao AS semestre_graduacao, a.ano_limite AS ano_limite, c.sigla AS curso_sigla, c.nome AS curso_nome, a.curso_codigo AS curso_codigo, a.data_primeiramatricula AS data_primeiramatricula, a.turno AS turno
 FROM aluno a, curso c
 WHERE a.curso_codigo = c.codigo
 
@@ -734,49 +742,59 @@ INSERT INTO curso VALUES
 (101, 'Análise e Desenvolvimento de Sistemas', 2800, 'ADS', 5),
 (102, 'Desenvolvimento de Software Multiplataforma', 1400, 'DSM', 5)
 
+-- Valores de teste para tabela Professor
+INSERT INTO professor VALUES
+(1001, 'Marcelo Silva', 'Mestre'),
+(1002, 'Rafael Medeiros', 'Mestre'),
+(1003, 'Adriana Bastos', 'Doutora'),
+(1004, 'Henrique Galvão', 'Mestre'),
+(1005, 'Ulisses Santos Barbosa', 'Doutor'),
+(1006, 'Pedro Guimarães', 'Mestre')
+
+
 -- Valores de teste para tabela Disciplina
 -- Curso 101
 INSERT INTO disciplina VALUES
-(1001, 'Laboratório de Banco de Dados', 4, '14:50', '18:20', 'Segunda', 101),
-(1002, 'Banco de Dados', 4, '14:50', '18:20', 'Terça', 101),
-(1003, 'Algorítmos e Lógica de Programação', 4, '14:50', '18:20', 'Segunda', 101),
-(1004, 'Matemática Discreta', 4, '13:00', '16:30','Quinta', 101),
-(1005, 'Linguagem de Programação', 4, '14:50', '18:20', 'Terça', 101),
-(1006, 'Estruturas de Dados', 2, '13:00', '14:40', 'Terça', 101),
-(1007, 'Programação Mobile', 4, '13:00', '16:30', 'Sexta', 101),
-(1008, 'Empreendedorismo', 2, '13:00', '14:40', 'Quarta', 101),
-(1009, 'Ética e Responsabilidade', 2, '16:50', '18:20', 'Segunda', 101),
-(1010, 'Administração Geral', 4, '14:50', '18:20', 'Terça', 101),
-(1011, 'Sistemas de Informação', 4, '13:00', '16:30', 'Terça', 101),
-(1012, 'Gestão e Governança de TI', 4, '14:50', '18:20', 'Sexta', 101),
-(1013, 'Redes de Computadores', 4, '14:50', '18:20', 'Quinta', 101),
-(1014, 'Contabilidade', 2, '13:00', '14:40', 'Quarta', 101),
-(1015, 'Economia e Finanças', 4, '13:00', '16:30', 'Quarta', 101),
-(1016, 'Arquitetura e Organização de Computadores', 4, '13:00', '16:30', 'Segunda', 101),
-(1017, 'Laboratório de Hardware', 4, '13:00', '16:30', 'Segunda', 101),
-(1018, 'Sistemas Operacionais', 4, '14:50', '18:20', 'Quinta', 101),
-(1019, 'Sistemas Operacionais 2', 4, '14:50', '18:20', 'Sexta', 101),
-(1020, 'Programação Web', 4, '13:00', '16:30', 'Terça', 101),
-(1021, 'Programação em Microinformática', 2, '13:00', '14:40', 'Sexta', 101),
-(1022, 'Programação Linear', 2, '13:00', '14:40', 'Segunda', 101),
-(1023, 'Cálculo', 4, '13:00', '16:30', 'Segunda', 101),
-(1024, 'Teste de Software', 2, '13:00', '14:40', 'Quinta', 101),
-(1025, 'Engenharia de Software 1', 4, '13:00', '16:30', 'Segunda', 101),
-(1026, 'Engenharia de Software 2', 4, '13:00', '16:30', 'Terça', 101),
-(1027, 'Engenharia de Software 3', 4, '14:50', '18:20', 'Segunda', 101),
-(1028, 'Laboratório de Engenharia de Software', 4, '14:50', '18:20', 'Quarta', 101),
-(1029, 'Inglês 1', 4, '14:50', '18:20', 'Sexta', 101),
-(1030, 'Inglês 2', 2, '14:50', '16:30', 'Terça', 101),
-(1031, 'Inglês 3', 2, '13:00', '14:40', 'Sexta', 101),
-(1032, 'Inglês 4', 2, '13:00', '14:40', 'Segunda', 101),
-(1033, 'Inglês 5', 2, '13:00', '14:40', 'Terça', 101),
-(1034, 'Inglês 6', 2, '13:00', '14:40', 'Quinta', 101),
-(1035, 'Sociedade e Tecnologia', 2, '14:50', '16:30', 'Terça', 101),
-(1036, 'Interação Humano Computador', 4, '14:50', '18:20', 'Terça', 101),
-(1037, 'Estatística Aplicada', 4, '14:50', '18:20', 'Quarta', 101),
-(1038, 'Laboratório de Redes de Computadores', 4, '14:50', '18:20', 'Sexta', 101),
-(1039, 'Inteligência Artificial', 4, '13:00', '16:30', 'Quarta', 101),
-(1040, 'Programação para Mainframes', 4, '14:50', '18:20', 'Quarta', 101)
+(1001, 'Laboratório de Banco de Dados', 4, '14:50', '18:20', 'Segunda', 101, 1001),
+(1002, 'Banco de Dados', 4, '14:50', '18:20', 'Terça', 101, 1001),
+(1003, 'Algorítmos e Lógica de Programação', 4, '14:50', '18:20', 'Segunda', 101, 1001),
+(1004, 'Matemática Discreta', 4, '13:00', '16:30','Quinta', 101, 1001),
+(1005, 'Linguagem de Programação', 4, '14:50', '18:20', 'Terça', 101, 1001),
+(1006, 'Estruturas de Dados', 2, '13:00', '14:40', 'Terça', 101, 1001),
+(1007, 'Programação Mobile', 4, '13:00', '16:30', 'Sexta', 101, 1001),
+(1008, 'Empreendedorismo', 2, '13:00', '14:40', 'Quarta', 101, 1002),
+(1009, 'Ética e Responsabilidade', 2, '16:50', '18:20', 'Segunda', 101, 1002),
+(1010, 'Administração Geral', 4, '14:50', '18:20', 'Terça', 101, 1002),
+(1011, 'Sistemas de Informação', 4, '13:00', '16:30', 'Terça', 101, 1002),
+(1012, 'Gestão e Governança de TI', 4, '14:50', '18:20', 'Sexta', 101, 1002),
+(1013, 'Redes de Computadores', 4, '14:50', '18:20', 'Quinta', 101, 1004),
+(1014, 'Contabilidade', 2, '13:00', '14:40', 'Quarta', 101, 1001),
+(1015, 'Economia e Finanças', 4, '13:00', '16:30', 'Quarta', 101, 1004),
+(1016, 'Arquitetura e Organização de Computadores', 4, '13:00', '16:30', 'Segunda', 101, 1001),
+(1017, 'Laboratório de Hardware', 4, '13:00', '16:30', 'Segunda', 101, 1001),
+(1018, 'Sistemas Operacionais', 4, '14:50', '18:20', 'Quinta', 101, 1001),
+(1019, 'Sistemas Operacionais 2', 4, '14:50', '18:20', 'Sexta', 101, 1001),
+(1020, 'Programação Web', 4, '13:00', '16:30', 'Terça', 101, 1001),
+(1021, 'Programação em Microinformática', 2, '13:00', '14:40', 'Sexta', 101, 1004),
+(1022, 'Programação Linear', 2, '13:00', '14:40', 'Segunda', 101, 1004),
+(1023, 'Cálculo', 4, '13:00', '16:30', 'Segunda', 101, 1003),
+(1024, 'Teste de Software', 2, '13:00', '14:40', 'Quinta', 101, 1002),
+(1025, 'Engenharia de Software 1', 4, '13:00', '16:30', 'Segunda', 101, 1001),
+(1026, 'Engenharia de Software 2', 4, '13:00', '16:30', 'Terça', 101, 1002),
+(1027, 'Engenharia de Software 3', 4, '14:50', '18:20', 'Segunda', 101, 1005),
+(1028, 'Laboratório de Engenharia de Software', 4, '14:50', '18:20', 'Quarta', 101, 1004),
+(1029, 'Inglês 1', 4, '14:50', '18:20', 'Sexta', 101, 1005),
+(1030, 'Inglês 2', 2, '14:50', '16:30', 'Terça', 101, 1005),
+(1031, 'Inglês 3', 2, '13:00', '14:40', 'Sexta', 101, 1005),
+(1032, 'Inglês 4', 2, '13:00', '14:40', 'Segunda', 101, 1005),
+(1033, 'Inglês 5', 2, '13:00', '14:40', 'Terça', 101, 1005),
+(1034, 'Inglês 6', 2, '13:00', '14:40', 'Quinta', 101, 1005),
+(1035, 'Sociedade e Tecnologia', 2, '14:50', '16:30', 'Terça', 101, 1002),
+(1036, 'Interação Humano Computador', 4, '14:50', '18:20', 'Terça', 101, 1002),
+(1037, 'Estatística Aplicada', 4, '14:50', '18:20', 'Quarta', 101, 1004),
+(1038, 'Laboratório de Redes de Computadores', 4, '14:50', '18:20', 'Sexta', 101, 1004),
+(1039, 'Inteligência Artificial', 4, '13:00', '16:30', 'Quarta', 101, 1004),
+(1040, 'Programação para Mainframes', 4, '14:50', '18:20', 'Quarta', 101, 1004)
 
 INSERT INTO disciplina VALUES
 --(1041, 'Desenvolvimento de Aplicações Distribuídas', 4, '13:00', '16:30', 'Segunda', 102),

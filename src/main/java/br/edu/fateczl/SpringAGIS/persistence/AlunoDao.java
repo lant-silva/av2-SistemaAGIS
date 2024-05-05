@@ -15,7 +15,7 @@ import br.edu.fateczl.SpringAGIS.model.Aluno;
 import br.edu.fateczl.SpringAGIS.model.Curso;
 
 @Repository
-public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
+public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>, IAluno{
 	private GenericDao gDao;
 	
 	public AlunoDao(GenericDao gDao) {
@@ -80,6 +80,7 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 			a.setAnoLimite(rs.getString("ano_limite"));
 			Curso cur = new Curso();
 			cur.setCodigo(rs.getInt("curso_codigo"));
+			cur.setNome(rs.getString("curso_nome"));
 			a.setCurso(cur);
 			a.setTurno(rs.getString("turno"));
 		}
@@ -126,5 +127,43 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 		ps.close();
 		c.close();
 		return alunos;
+	}
+
+	@Override
+	public Aluno consultarAlunoRa(Aluno a) throws SQLException, ClassNotFoundException {
+		Connection c = gDao.getConnection();
+		String sql = "SELECT * FROM v_alunos WHERE ra = ?";
+		PreparedStatement ps = c.prepareStatement(sql);
+		ps.setString(1, a.getRa());
+		ResultSet rs = ps.executeQuery();
+		if(rs.next()) {
+			a.setCpf(rs.getString("cpf"));
+			a.setRa(rs.getString("ra"));
+			a.setNome(rs.getString("nome"));
+			a.setNomeSocial(rs.getString("nome_social"));
+			a.setDataNasc(rs.getString("data_nasc"));
+			a.setTelefoneCelular(rs.getString("telefone_celular"));
+			a.setTelefoneResidencial(rs.getString("telefone_residencial"));
+			a.setEmailPessoal(rs.getString("email_pessoal"));
+			a.setEmailCorporativo(rs.getString("email_corporativo"));
+			a.setDataSegundoGrau(rs.getString("data_segundograu"));
+			a.setInstituicaoSegundoGrau(rs.getString("instituicao_segundograu"));
+			a.setPontuacaoVestibular(rs.getDouble("pontuacao_vestibular"));
+			a.setPosicaoVestibular(rs.getInt("posicao_vestibular"));
+			a.setAnoIngresso(rs.getString("ano_ingresso"));
+			a.setSemestreIngresso(rs.getString("semestre_ingresso"));
+			a.setSemestreGraduacao(rs.getString("semestre_graduacao"));
+			a.setAnoLimite(rs.getString("ano_limite"));
+			Curso cur = new Curso();
+			cur.setCodigo(rs.getInt("curso_codigo"));
+			cur.setNome(rs.getString("curso_nome"));
+			a.setCurso(cur);
+			a.setDataPrimeiraMatricula(rs.getString("data_primeiramatricula"));
+			a.setTurno(rs.getString("turno"));
+		}
+		rs.close();
+		ps.close();
+		c.close();
+		return a;
 	}
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import br.edu.fateczl.SpringAGIS.model.Disciplina;
 import br.edu.fateczl.SpringAGIS.model.Matricula;
 import br.edu.fateczl.SpringAGIS.model.MatriculaDisciplinas;
+import br.edu.fateczl.SpringAGIS.model.Professor;
 
 @Repository
 public class MatriculaDisciplinaDao implements IMatricula{
@@ -44,7 +45,7 @@ public class MatriculaDisciplinaDao implements IMatricula{
 			throws SQLException, ClassNotFoundException {
 		List<MatriculaDisciplinas> ms = new ArrayList<>();
 		Connection c = gDao.getConnection();
-		String sql = "SELECT * FROM dbo.fn_listarultimamatricula(?) ORDER BY nome ASC";
+		String sql = "SELECT * FROM dbo.fn_listarultimamatricula(?) ORDER BY situacao, nome ASC";
 		PreparedStatement ps = c.prepareStatement(sql);
 		ps.setString(1, alunoRa);
 		ResultSet rs = ps.executeQuery();
@@ -59,9 +60,15 @@ public class MatriculaDisciplinaDao implements IMatricula{
 			d.setHorarioFim(rs.getString("horario_fim"));
 			d.setDiaSemana(rs.getString("dia"));
 			d.setCursoCodigo(rs.getInt("curso_codigo"));
+			Professor p = new Professor();
+			p.setCodigo(rs.getInt("codigo_professor"));
+			p.setNome(rs.getString("nome_professor"));
+			d.setProfessor(p);
 			m.setDisciplina(d);
 			m.setCodigoMatricula(rs.getInt("codigo_matricula"));
 			m.setSituacao(rs.getString("situacao"));
+			m.setQtdFaltas(rs.getInt("qtd_faltas"));
+			m.setNotaFinal(rs.getFloat("nota_final"));
 			ms.add(m);
 		}
 		

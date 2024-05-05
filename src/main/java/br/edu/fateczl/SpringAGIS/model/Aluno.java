@@ -28,5 +28,6 @@ public class Aluno {
 	String semestreGraduacao;
 	String anoLimite;
 	Curso curso;
+	String dataPrimeiraMatricula;
 	String turno;
 }

@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import br.edu.fateczl.SpringAGIS.model.Disciplina;
+import br.edu.fateczl.SpringAGIS.model.Professor;
 
 @Repository
 public class DisciplinaDao implements IDisciplina{
@@ -28,14 +29,16 @@ public class DisciplinaDao implements IDisciplina{
 		ResultSet rs = ps.executeQuery();
 		while(rs.next()) {
 			Disciplina d = new Disciplina();
-			d.setCodigo(rs.getInt("codigo"));
+			d.setCodigo(rs.getInt("	codigo"));
 			d.setNome(rs.getString("nome"));
 			d.setDiaSemana(rs.getString("dia"));
 			d.setHorarioInicio(rs.getString("horario_inicio"));
 			d.setHorarioFim(rs.getString("horario_final"));
 			d.setCursoCodigo(rs.getInt("curso_codigo"));
 			d.setQtdAulas(rs.getInt("qtd_aulas"));
-			d.setProfessorCodigo(rs.getInt("codigo_professor"));
+			Professor p = new Professor();
+			p.setCodigo(rs.getInt("codigo_professor"));
+			d.setProfessor(p);
 			disciplinas.add(d);
 		}
 		rs.close();
