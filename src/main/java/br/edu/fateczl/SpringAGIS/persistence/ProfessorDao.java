@@ -41,14 +41,14 @@ public class ProfessorDao implements ICrud<Professor>, IIud<Professor>{
 	@Override
 	public Professor consultar(Professor p) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "SELECT * FROM professor WHERE codigo = ?";
+		String sql = "SELECT * FROM v_professor WHERE codigo = ?";
 		PreparedStatement ps = c.prepareStatement(sql);
 		ps.setInt(1, p.getCodigo());
 		ResultSet rs = ps.executeQuery();
 		if(rs.next()) {
 			p.setCodigo(rs.getInt("codigo"));
 			p.setNome(rs.getString("nome"));
-			p.setTitulacao(rs.getString(0));
+			p.setTitulacao(rs.getString("titulacao"));
 		}
 		rs.close();
 		ps.close();
@@ -60,7 +60,7 @@ public class ProfessorDao implements ICrud<Professor>, IIud<Professor>{
 	public List<Professor> listar() throws SQLException, ClassNotFoundException {
 		List<Professor> professores = new ArrayList<>();
 		Connection c = gDao.getConnection();
-		String sql = "SELECT * FROM professor";
+		String sql = "SELECT * FROM v_professor";
 		PreparedStatement ps = c.prepareStatement(sql);
 		ResultSet rs = ps.executeQuery();
 		while(rs.next()) {

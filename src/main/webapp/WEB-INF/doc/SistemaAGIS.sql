@@ -79,7 +79,8 @@ GO
 CREATE TABLE conteudo(
 codigo					INT				NOT NULL,
 descricao				VARCHAR(200)	NOT NULL,
-codigo_disciplina		INT				NOT NULL
+codigo_disciplina		INT				NOT NULL,
+data_aula				DATE			NOT NULL
 PRIMARY KEY(codigo)
 FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 )
@@ -104,20 +105,13 @@ FOREIGN KEY(codigo_matricula) REFERENCES matricula(codigo)
 )
 GO
 CREATE TABLE aula(
-codigo					INT				NOT NULL,
-codigo_conteudo			INT				NOT NULL,
-data_aula				DATE			NOT NULL
-PRIMARY KEY(codigo)
-FOREIGN KEY(codigo_conteudo) REFERENCES conteudo(codigo)
-)
-GO
-CREATE TABLE matricula_aula(
-matricula_codigo		INT				NOT NULL,
 aula_codigo				INT				NOT NULL,
+matricula_codigo		INT				NOT NULL,
+conteudo_codigo			INT				NOT NULL,
 presenca				CHAR(1)			NOT NULL
 PRIMARY KEY(matricula_codigo, aula_codigo)
 FOREIGN KEY(matricula_codigo) REFERENCES matricula(codigo),
-FOREIGN KEY(aula_codigo) REFERENCES aula(codigo)
+FOREIGN KEY(conteudo_codigo) REFERENCES conteudo(codigo)
 )
 
 -- IND01 - Stored Procedures
@@ -539,6 +533,37 @@ BEGIN
 END
 -- Fim da procedure
 
+CREATE PROCEDURE sp_iudprofessor(@acao CHAR(1), @codigo INT, @nome VARCHAR(100), @titulacao VARCHAR(100), @saida VARCHAR(200))
+AS
+BEGIN
+	IF(UPPER(@acao) = 'I')
+	BEGIN
+		INSERT INTO professor (codigo, nome, titulacao) VALUES
+		(@codigo, @nome, @titulacao)
+		SET @saida = 'Professor inserido'
+	END
+	ELSE
+	IF(UPPER(@acao) = 'U')
+	BEGIN
+		UPDATE professor
+		SET nome = @nome,
+			titulacao = @titulacao
+		WHERE codigo = @codigo
+		SET @saida = 'Professor atualizado'
+	END
+	ELSE
+	IF(UPPER(@acao) = 'D')
+	BEGIN
+		DELETE professor
+		WHERE codigo = @codigo
+	END
+	ELSE
+	BEGIN
+		RAISERROR('Operação inválida', 16, 1)
+		RETURN
+	END
+END
+
 -- IND02 - User Defined Functions
 ---------------------------------------------------------------------------
 
@@ -733,6 +758,18 @@ SELECT c.codigo AS codigo, c.nome AS nome, c.carga_horaria AS carga_horaria, c.s
 FROM curso c
 
 SELECT * FROM v_cursos
+
+CREATE VIEW v_professor
+AS
+SELECT p.codigo AS codigo, p.nome AS nome, p.titulacao AS titulacao
+FROM professor p
+
+CREATE VIEW v_aluno_chamada
+AS
+SELECT a.nome, a.ra
+FROM aluno a, 
+
+SELECT * FROM v_professor
 
 -- IND04 - Inserções para teste
 --------------------------------------------------------------------------------------
