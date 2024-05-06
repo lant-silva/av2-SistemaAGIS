@@ -12,9 +12,10 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import br.edu.fateczl.SpringAGIS.model.Conteudo;
+import br.edu.fateczl.SpringAGIS.model.Disciplina;
 
 @Repository
-public class ConteudoDao implements ICrud<Conteudo>, IIud<Conteudo>{
+public class ConteudoDao implements ICrud<Conteudo>, IIud<Conteudo>, IConteudo{
 	private GenericDao gDao;
 	
 	public ConteudoDao(GenericDao gDao){
@@ -73,6 +74,28 @@ public class ConteudoDao implements ICrud<Conteudo>, IIud<Conteudo>{
 		rs.close();
 		ps.close();
 		con.close();
+		return conteudos;
+	}
+
+	@Override
+	public List<Conteudo> listarPorDisciplina(Disciplina d) throws SQLException, ClassNotFoundException {
+		List<Conteudo> conteudos = new ArrayList<>();
+		Connection c = gDao.getConnection();
+		String sql = "SELECT * FROM v_conteudo WHERE codigo_disciplina = ?";
+		PreparedStatement ps = c.prepareStatement(sql);
+		ps.setInt(1, d.getCodigo());
+		ResultSet rs = ps.executeQuery();
+		while(rs.next()) {
+			Conteudo con = new Conteudo();
+			con.setCodigo(rs.getInt("codigo"));
+			con.setCodigoDisciplina(rs.getInt("codigo_disciplina"));
+			con.setDescricao(rs.getString("descricao"));
+			con.setDataAula(rs.getString("data_aula"));
+			conteudos.add(con);
+		}
+		rs.close();
+		ps.close();
+		c.close();
 		return conteudos;
 	}
 }

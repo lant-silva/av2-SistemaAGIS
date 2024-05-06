@@ -9,4 +9,5 @@ public class Conteudo {
 	int codigo;
 	int codigoDisciplina;
 	String descricao;
+	String dataAula;
 }

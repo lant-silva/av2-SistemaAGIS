@@ -1,5 +1,7 @@
 USE master
+GO
 DROP DATABASE agis
+GO
 
 CREATE DATABASE agis
 GO
@@ -80,7 +82,7 @@ CREATE TABLE conteudo(
 codigo					INT				NOT NULL,
 descricao				VARCHAR(200)	NOT NULL,
 codigo_disciplina		INT				NOT NULL,
-data_aula				DATE			NOT NULL
+data_aula				DATE			NULL
 PRIMARY KEY(codigo)
 FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 )
@@ -764,15 +766,45 @@ AS
 SELECT p.codigo AS codigo, p.nome AS nome, p.titulacao AS titulacao
 FROM professor p
 
+CREATE VIEW v_conteudo
+AS
+SELECT c.codigo AS codigo, c.codigo_disciplina AS codigo_disciplina, c.descricao AS descricao, c.data_aula AS data_aula
+FROM conteudo c, disciplina d
+WHERE c.codigo_disciplina = d.codigo
+
+SELECT * FROM v_conteudo
+
 CREATE VIEW v_aluno_chamada
 AS
-SELECT a.nome, a.ra
-FROM aluno a, 
+SELECT DISTINCT a.nome AS nome, a.ra AS ra, d.codigo AS codigo_disciplina
+FROM aluno a, matricula m, matricula_disciplina md, disciplina d
+WHERE m.aluno_ra = a.ra
+	AND md.codigo_matricula = m.codigo
+	AND md.codigo_disciplina = d.codigo
+	AND md.situacao = 'Em curso'
 
+CREATE VIEW v_disciplinas_aluno
+AS
+SELECT d.codigo AS codigo, d.nome AS nome, d.qtd_aulas AS qtd_aulas, SUBSTRING(CAST(d.horario_inicio AS VARCHAR), 1, 5) AS horario_inicio, SUBSTRING(CAST(d.horario_fim AS VARCHAR), 1, 5) AS horario_fim, d.dia AS dia, d.curso_codigo AS curso_codigo, a.ra AS ra
+FROM disciplina d, curso c, aluno a, matricula m, matricula_disciplina md
+WHERE d.curso_codigo = c.codigo
+	AND a.curso_codigo = c.codigo
+	AND a.ra = m.aluno_ra
+	AND m.codigo = md.codigo_matricula
+	AND d.codigo = md.codigo_disciplina
+	AND md.situacao NOT LIKE 'Aprovado'
+	AND md.situacao = 'Não Cursado'
+
+SELECT * FROM v_disciplinas_aluno WHERE ra = 202411113
+
+SELECT * FROM matricula_disciplina
 SELECT * FROM v_professor
+SELECT * from v_aluno_chamada WHERE codigo_disciplina = 1010
 
 -- IND04 - Inserções para teste
 --------------------------------------------------------------------------------------
+
+select * From aluno
 
 -- Valores de teste para tabela Curso
 INSERT INTO curso VALUES
@@ -874,3 +906,7 @@ INSERT INTO disciplina VALUES
 (1078, 'Arquitetura de Microsserviços Distribuídos', 4, '13:00', '16:30', 'Quinta', 102),
 (1079, 'Engenharia de Requisitos para Sistemas Distribuídos', 4, '13:00', '16:30', 'Sexta', 102),
 (1080, 'Kanban e Lean para Desenvolvimento de Software', 2, '13:00', '14:40', 'Sexta', 102)
+
+INSERT INTO conteudo VALUES
+(1001001, 'Aula Introdutoria', 1001, NULL),
+(1001002, 'Projeto Spring', 1001, NULL)
