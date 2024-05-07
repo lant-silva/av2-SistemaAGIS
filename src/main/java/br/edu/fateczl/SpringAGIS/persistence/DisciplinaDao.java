@@ -89,7 +89,7 @@ public class DisciplinaDao implements IDisciplina{
 			d.setNome(rs.getString("nome"));
 			d.setDiaSemana(rs.getString("dia"));
 			d.setHorarioInicio(rs.getString("horario_inicio"));
-			d.setHorarioFim(rs.getString("horario_final"));
+			d.setHorarioFim(rs.getString("horario_fim"));
 			d.setCursoCodigo(rs.getInt("curso_codigo"));
 			d.setQtdAulas(rs.getInt("qtd_aulas"));
 			disciplinas.add(d);
@@ -99,4 +99,29 @@ public class DisciplinaDao implements IDisciplina{
 		c.close();
 		return disciplinas;
 	}
+	
+	public Disciplina consultar(Disciplina d) throws SQLException, ClassNotFoundException {
+		Connection c = gDao.getConnection();
+		String sql = "SELECT * FROM disciplina WHERE codigo = ?";
+		PreparedStatement ps = c.prepareStatement(sql);
+		ps.setInt(1, d.getCodigo());
+		ResultSet rs = ps.executeQuery();
+		if(rs.next()) {
+			d.setCodigo(rs.getInt("codigo"));
+			d.setNome(rs.getString("nome"));
+			d.setDiaSemana(rs.getString("dia"));
+			d.setHorarioInicio(rs.getString("horario_inicio"));
+			d.setHorarioFim(rs.getString("horario_fim"));
+			d.setCursoCodigo(rs.getInt("curso_codigo"));
+			d.setQtdAulas(rs.getInt("qtd_aulas"));
+			Professor p = new Professor();
+			p.setCodigo(rs.getInt("professor_codigo"));
+			d.setProfessor(p);
+		}
+		rs.close();
+		ps.close();
+		c.close();
+		return d;
+	}
+
 }

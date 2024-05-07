@@ -17,6 +17,7 @@ import br.edu.fateczl.SpringAGIS.model.Aluno;
 import br.edu.fateczl.SpringAGIS.model.Disciplina;
 import br.edu.fateczl.SpringAGIS.persistence.AlunoDao;
 import br.edu.fateczl.SpringAGIS.persistence.DisciplinaDao;
+import br.edu.fateczl.SpringAGIS.persistence.DispensaDao;
 import br.edu.fateczl.SpringAGIS.persistence.GenericDao;
 
 @Controller
@@ -31,6 +32,9 @@ public class DispensaController {
 	@Autowired
 	DisciplinaDao dDao;
 	
+	@Autowired
+	DispensaDao disDao;
+	
 	@RequestMapping(name="dispensa", value="/dispensa", method = RequestMethod.GET)
 	public ModelAndView dispensaGet(@RequestParam Map<String, String> allRequestParam, ModelMap model) {
 		
@@ -41,6 +45,8 @@ public class DispensaController {
 	public ModelAndView dispensaPost(@RequestParam Map<String, String> allRequestParam, ModelMap model) {
 		String cmd = allRequestParam.get("botao");
 		String ra = allRequestParam.get("ra");
+		String disciplina = allRequestParam.get("disciplina");
+		String motivo = allRequestParam.get("motivo");
 		
 		String saida = "";
 		String erro = "";
@@ -48,13 +54,19 @@ public class DispensaController {
 		Aluno a = new Aluno();
 		Disciplina d = new Disciplina();
 		List<Disciplina> disciplinas = new ArrayList<>();
-		
+		 
 		try {
+			a.setRa(ra);
 			if(cmd.contains("Consultar Aluno")) {
-				a.setRa(ra);
 				a = buscarAluno(a);				
 				disciplinas = listarDisciplinas(ra);
 				found = true;
+			}
+			if(cmd.contains("Solicitar Dispensa")) {
+				d.setCodigo(Integer.parseInt(disciplina));
+				a = buscarAluno(a);
+				d = buscarDisciplina(d);
+				saida = solicitarDispensa(a, d, motivo);
 			}
 		} catch(SQLException | ClassNotFoundException e) {
 			erro = e.getMessage();
@@ -67,6 +79,16 @@ public class DispensaController {
 			model.addAttribute("found", found);
 		}
 		return new ModelAndView("dispensa");
+	}
+
+	private String solicitarDispensa(Aluno a, Disciplina d, String motivo) throws ClassNotFoundException, SQLException {
+		String saida = disDao.enviarSolicitacaoDispensa(a, d, motivo);
+		return saida;
+	}
+
+	private Disciplina buscarDisciplina(Disciplina d) throws ClassNotFoundException, SQLException {
+		d = dDao.consultar(d);
+		return d;
 	}
 
 	private Aluno buscarAluno(Aluno a) throws ClassNotFoundException, SQLException {

@@ -28,8 +28,9 @@
 					</td>
 				</tr>
 			</table>
+			<div align="center">
+			<c:if test="${not empty disciplinas }">
 			<table>
-				<c:if test="${found eq true or not empty disciplinas }">
 					<tr>
 						<td colspan="3"><select class="input_data" id="disciplina" name="disciplina">
 								<option value="0">Escolha uma Disciplina</option>
@@ -40,9 +41,33 @@
 								</c:forEach>
 						</select>
 						<td />
+					</tr>
 					<tr>
-				</c:if>
+						<td colspan="3"><input class="input_data" type="text" id="ra"
+						name="motivo" placeholder="Motivo da Dispensa" value="" >
+					<td />
+					<td><input type="submit" id="botao" name="botao"
+						value="Solicitar Dispensa">
+					</td>
+					</tr>
 			</table>
+			</c:if>			
+			</div>
+			<div align="center">
+				<c:if test="${not empty saida }">
+					<H2>
+						<b><c:out value="${saida }" /></b>
+					</H2>
+				</c:if>
+			</div>
+			<br />
+			<div align="center">
+				<c:if test="${not empty erro }">
+					<H2>
+				<b><c:out value="${erro }" /></b>
+			</H2>
+		</c:if>
+	</div>
 		</form>
 	</div>
 </body>
