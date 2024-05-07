@@ -37,9 +37,6 @@ public class HistoricoController {
 	@Autowired
 	MatriculaDisciplinaDao mdDao;
 	
-	@Autowired
-	HistoricoDao hDao;
-	
 	@RequestMapping(name = "historico", value="/historico", method = RequestMethod.GET)
 	public ModelAndView historicoGet (@RequestParam Map<String, String> allRequestParam, ModelMap model) {
 		return new ModelAndView("historico");
