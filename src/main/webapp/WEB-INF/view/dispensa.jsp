@@ -8,24 +8,22 @@
 <link rel="stylesheet" type="text/css" href='<c:url value = "./resources/css/styles.css"/>'>
 <title>AGIS - Requisição de Dispensa</title>
 <header>
-	<h1 align="center">Requisição de Dispensa</h1>
 	<div>
 		<jsp:include page="menualuno.jsp" />
 	</div>
 </header>
 </head>
 <body>
+	<h1 class="requisicao-dispensa">Requisição de Dispensa</h1>
 	<div align="center" class="container">
 		<form action="dispensa" method="post">
 			<table>
 				<tr>
-					<td colspan="3"><input class="input_data" type="text" id="ra"
-						name="ra" placeholder="R.A" value="${aluno.ra }" maxlength="9"
-						oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-					<td />
-					<td><input type="submit" id="botao" name="botao"
-						value="Consultar Aluno">
-					</td>
+				<td colspan="3">
+   					 <input class="input_data" type="text" id="ra" name="ra" placeholder="R.A" value="${aluno.ra}" maxlength="9" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+    					<br> 
+   					 <input type="submit" class="consultar-botao" name="botao" value="Consultar Aluno">
+				</td>
 				</tr>
 			</table>
 			<table>

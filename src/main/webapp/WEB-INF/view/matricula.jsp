@@ -8,28 +8,27 @@
 <link rel="stylesheet" type="text/css" href='<c:url value = "./resources/css/styles.css"/>'>
 <title>AGIS - Matricula</title>
 <header>
-	<h1 align="center">Gerenciamento de Matricula</h1>
+	
 	<div>
 		<jsp:include page="menualuno.jsp" />
 	</div>
 </header>
 </head>
 <body>
-	<h4 align="center">*período de matrícula: 15 a 21 de Janeiro / 15 a 21 de Julho</h4>
+	<h1 class="gerenciamento-matricula">Gerenciamento de Matricula</h1>
+	
+	<h4 id="periodo-matricula" align="center">*Período de matrícula: 15 a 21 de Janeiro / 15 a 21 de Julho*</h4>
+
 	<form action="matricula" method="post">
 		<div align="center" class="container">
 			<tr>
-				<td colspan="3"><input class="input_data" type="text" id="ra"
-					name="ra" placeholder="R.A" value="${aluno.ra }" maxlength="9"
-					oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-				<td />
-				<c:if test="${intervalo}">
-					<td><input type="submit" id="botao" name="botao"
-						value="Iniciar Matricula">
-					<td />
-				</c:if>
-				<td><input type="submit" id="botao" name="botao"
-					value="Consultar Matricula">
+				<td colspan="3">
+   					 <input class="input_data" type="text" id="ra" name="ra" placeholder="R.A" value="${aluno.ra}" maxlength="9" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+   					 <br> <!-- Adiciona uma quebra de linha -->
+   					 <c:if test="${intervalo}">
+       				 <input type="submit" class="consultar-botao" name="botao" value="Iniciar Matricula">
+   					 </c:if>
+    				<input type="submit" class="consultar-botao" name="botao" value="Consultar Matricula">
 				</td>
 			</tr>
 
