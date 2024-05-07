@@ -37,7 +37,6 @@ public class DispensaController {
 	
 	@RequestMapping(name="dispensa", value="/dispensa", method = RequestMethod.GET)
 	public ModelAndView dispensaGet(@RequestParam Map<String, String> allRequestParam, ModelMap model) {
-		
 		return new ModelAndView("dispensa");
 	}
 	

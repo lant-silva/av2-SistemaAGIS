@@ -115,6 +115,15 @@ PRIMARY KEY(matricula_codigo, aula_codigo)
 FOREIGN KEY(matricula_codigo) REFERENCES matricula(codigo),
 FOREIGN KEY(conteudo_codigo) REFERENCES conteudo(codigo)
 )
+GO
+CREATE TABLE dispensa(
+aluno_ra				CHAR(9)			NOT NULL,
+codigo_disciplina		INT				NOT NULL,
+motivo					VARCHAR(200)	NOT NULL
+PRIMARY KEY(aluno_ra, codigo_disciplina)
+FOREIGN KEY(aluno_ra) REFERENCES aluno(ra),
+FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
+)
 
 -- IND01 - Stored Procedures
 ---------------------------------------------------------------------------------
@@ -566,6 +575,24 @@ BEGIN
 	END
 END
 
+CREATE PROCEDURE sp_alunodispensa(@alunora CHAR(9), @codigodisciplina INT, @motivo VARCHAR(200), @saida VARCHAR(200) OUTPUT)
+AS
+BEGIN
+	IF EXISTS(SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
+	BEGIN
+		RAISERROR('Disciplina já possui dispensa pendente', 16, 1)
+		RETURN
+	END
+	ELSE
+	BEGIN
+		INSERT INTO dispensa VALUES
+		(@alunora, @codigodisciplina, @motivo)
+		SET @saida = 'Dispensa solicitada'
+	END
+END
+
+SELECT * FROM dispensa
+
 -- IND02 - User Defined Functions
 ---------------------------------------------------------------------------
 
@@ -710,7 +737,6 @@ BEGIN
 	RETURN
 END 
 
-
 -----------------------------------------------------------------------------
 select * from aluno
 SELECT * FROM matricula_disciplina
@@ -792,8 +818,16 @@ WHERE d.curso_codigo = c.codigo
 	AND a.ra = m.aluno_ra
 	AND m.codigo = md.codigo_matricula
 	AND d.codigo = md.codigo_disciplina
-	AND md.situacao NOT LIKE 'Aprovado'
+	AND md.situacao NOT LIKE 'Dispensado'
+	AND md.situacao NOT LIKE 'Em curso'
 	AND md.situacao = 'Não Cursado'
+
+CREATE VIEW v_dispensas
+AS
+SELECT d.aluno_ra AS aluno_ra, d.codigo_disciplina AS codigo_disciplina, d.motivo AS motivo
+FROM dispensa d
+
+SELECT * FROM v_dispensas
 
 SELECT * FROM v_disciplinas_aluno WHERE ra = 202411113
 
