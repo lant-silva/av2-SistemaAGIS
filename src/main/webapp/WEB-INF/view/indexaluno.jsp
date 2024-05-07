@@ -4,10 +4,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="ISO-8859-1">
-<title>AGIS - Aluno</title>
-<link rel="stylesheet" type="text/css" href='<c:url value = "./resources/css/styles.css"/>'>
-</head>
+	<meta charset="ISO-8859-1">
+	<title>AGIS - Aluno</title>
+	<link rel="stylesheet" type="text/css" href='<c:url value = "./resources/css/styles.css"/>'>
+	</head>
 <body>
     <header>
         <div>

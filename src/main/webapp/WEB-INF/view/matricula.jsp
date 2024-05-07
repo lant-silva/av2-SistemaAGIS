@@ -24,7 +24,7 @@
 			<tr>
 				<td colspan="3">
    					 <input class="input_data" type="text" id="ra" name="ra" placeholder="R.A" value="${aluno.ra}" maxlength="9" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-   					 <br> <!-- Adiciona uma quebra de linha -->
+   					 <br> 
    					 <c:if test="${intervalo}">
        				 <input type="submit" class="consultar-botao" name="botao" value="Iniciar Matricula">
    					 </c:if>
