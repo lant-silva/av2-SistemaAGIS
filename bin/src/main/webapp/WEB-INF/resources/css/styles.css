@@ -27,7 +27,7 @@ h1 {
   font-size: 36px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   text-align: center;
-}a
+}
 
 .texto {
   font-family: 'Cambria', sans-serif;
@@ -201,8 +201,6 @@ input[type="submit"]:hover {
   font-weight: bold;
   color: red;
 }
-
-
 
 footer {
   position: fixed;
