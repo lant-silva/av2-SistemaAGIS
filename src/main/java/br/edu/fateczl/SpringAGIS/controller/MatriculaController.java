@@ -20,9 +20,10 @@ import br.edu.fateczl.SpringAGIS.model.Matricula;
 import br.edu.fateczl.SpringAGIS.model.MatriculaDisciplinas;
 import br.edu.fateczl.SpringAGIS.persistence.GenericDao;
 import br.edu.fateczl.SpringAGIS.persistence.MatriculaDisciplinaDao;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
-public class MatriculaController {
+public class MatriculaController{
 	
 	@Autowired
 	GenericDao gDao;
@@ -41,11 +42,12 @@ public class MatriculaController {
 	
 
 	@RequestMapping(name = "matricula", value="/matricula", method = RequestMethod.POST)
-	public ModelAndView matriculaPost (@RequestParam Map<String, String> allRequestParam, ModelMap model) {
+	public ModelAndView matriculaPost (@RequestParam Map<String, String> allRequestParam, HttpServletRequest request, ModelMap model) {
+		Map<String, String[]> parametros = request.getParameterMap();
 		String cmd = allRequestParam.get("botao");
 		String ra = allRequestParam.get("ra");
-		Matricula matricula = new Matricula();
-		String[] disciplinasSelecionadas = allRequestParam.containsKey("disciplinasSelecionadas") ? allRequestParam.get("disciplinasSelecionadas").split(",") : new String[0];
+		Matricula matricula = new Matricula();	
+		String[] disciplinasSelecionadas = new String[50];
 		
 		String saida ="";
 		String erro="";
@@ -64,6 +66,15 @@ public class MatriculaController {
 				}
 			}
 			if(cmd.contains("Confirmar Matricula")) {
+				for(String key : parametros.keySet()) {
+					if(key.startsWith("disciplinasSelecionadas")) {
+						disciplinasSelecionadas = parametros.get(key);
+						System.out.println(key);
+					}
+				}
+				for(String str : disciplinasSelecionadas) {
+					System.out.println(str);
+				}
 				inserirMatricula(disciplinasSelecionadas, ra);
 				saida = "Matricula finalizada";
 			}
@@ -80,6 +91,7 @@ public class MatriculaController {
 			model.addAttribute("disciplinas", matriculaDisciplinas);
 			model.addAttribute("aluno", a);
 			model.addAttribute("listar", listar);
+			
 		}
 		
 		return new ModelAndView("matricula");
@@ -88,7 +100,10 @@ public class MatriculaController {
 	private Matricula ultimaMatricula(String ra) throws ClassNotFoundException, SQLException {
 		return mdDao.consultarUltimaMatricula(ra);
 	}
-
+	
+	private String[] getCheckbox(@RequestParam(name="disciplinasSelecionadas") String disciplinas) {
+		return disciplinas.split(",");
+	}
 
 	private boolean validarDataMatricula(String dataMatricula) {
 		Date dataSql = Date.valueOf(dataMatricula);

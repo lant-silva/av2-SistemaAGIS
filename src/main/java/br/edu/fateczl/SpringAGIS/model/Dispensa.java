@@ -8,5 +8,6 @@ import lombok.Setter;
 public class Dispensa {
 	Aluno aluno;
 	Disciplina disciplina;
+	String nomeCurso;
 	String motivo;
 }

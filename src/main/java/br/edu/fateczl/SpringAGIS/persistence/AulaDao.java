@@ -21,12 +21,12 @@ public class AulaDao implements IAula{
 	}
 
 	@Override
-	public List<Aluno> listarAlunos(Disciplina d) throws SQLException, ClassNotFoundException {
+	public List<Aluno> listarAlunos(int conteudo) throws SQLException, ClassNotFoundException {
 		List<Aluno> alunos = new ArrayList<>();
 		Connection c = gDao.getConnection();
-		String sql = "SELECT * FROM v_aluno_chamada WHERE codigo_disciplina = ?";
+		String sql = "SELECT * FROM v_aluno_chamada WHERE codigo_conteudo = ?";
 		PreparedStatement ps = c.prepareStatement(sql);
-		ps.setInt(1, d.getCodigo());
+		ps.setInt(1, conteudo);
 		ResultSet rs = ps.executeQuery();
 		while(rs.next()) {
 			Aluno a = new Aluno();

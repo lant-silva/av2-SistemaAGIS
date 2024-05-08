@@ -86,7 +86,7 @@ public class AulaController {
 				foundD = true;
 			}
 			if(cmd.contains("Iniciar Chamada")) {
-				alunos = listarAlunos(d);
+				alunos = listarAlunos(Integer.parseInt(conteudo));
 			}
 		} catch (SQLException | ClassNotFoundException e) {
 			erro = e.getMessage();
@@ -109,7 +109,7 @@ public class AulaController {
 	}
 
 
-	private List<Aluno> listarAlunos(Disciplina d) throws ClassNotFoundException, SQLException {
-		return aDao.listarAlunos(d);
+	private List<Aluno> listarAlunos(int conteudo) throws ClassNotFoundException, SQLException {
+		return aDao.listarAlunos(conteudo);
 	}
 }

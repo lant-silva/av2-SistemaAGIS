@@ -107,7 +107,7 @@ FOREIGN KEY(codigo_matricula) REFERENCES matricula(codigo)
 )
 GO
 CREATE TABLE aula(
-aula_codigo				INT				NOT NULL,
+aula_codigo				INT				NOT NULL	IDENTITY(1000000, 1),
 matricula_codigo		INT				NOT NULL,
 conteudo_codigo			INT				NOT NULL,
 presenca				CHAR(1)			NOT NULL
@@ -417,15 +417,17 @@ DECLARE @conflito BIT,
 		@qtdaula INT,
 		@horarioinicio TIME,
 		@horariofim TIME,
-		@diasemana VARCHAR(50)
+		@diasemana VARCHAR(50),
+		@codigoconteudo INT
 
-SELECT @qtdaula = d.qtd_aulas, @horarioinicio = d.horario_inicio, @horariofim = d.horario_fim, @diasemana = d.dia
-FROM disciplina d, matricula_disciplina md, matricula m
+SELECT @qtdaula = d.qtd_aulas, @horarioinicio = d.horario_inicio, @horariofim = d.horario_fim, @diasemana = d.dia, @codigoconteudo = c.codigo
+FROM disciplina d, matricula_disciplina md, matricula m, conteudo c
 WHERE d.codigo = @codigodisciplina
 	ANd md.codigo_disciplina = d.codigo
 	AND md.codigo_matricula = m.codigo
 	AND m.codigo = @codigomatricula
 	AND m.aluno_ra = @ra
+	AND c.codigo_disciplina = @codigodisciplina
 
 EXEC sp_verificarconflitohorario @codigomatricula, @qtdaula, @diasemana, @horarioinicio, @horariofim, @conflito OUTPUT
 
@@ -437,6 +439,9 @@ BEGIN
 	WHERE codigo_matricula = @codigomatricula 
 		AND codigo_disciplina = @codigodisciplina
 	SET @saida = 'Matricula finalizada.'
+
+	INSERT INTO aula VALUES
+	()
 END
 ELSE
 BEGIN
@@ -591,6 +596,55 @@ BEGIN
 	END
 END
 
+CREATE PROCEDURE sp_concluirdispensa(@alunora CHAR(9), @codigodisciplina INT, @aprovacao VARCHAR(100), @saida VARCHAR(200) OUTPUT)
+AS
+BEGIN
+	DECLARE @codigomatricula INT
+	SELECT TOP 1 @codigomatricula = m.codigo FROM aluno a, matricula m WHERE a.ra = m.aluno_ra ORDER BY m.codigo DESC
+
+	IF NOT EXISTS(SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
+	BEGIN
+		RAISERROR('A requisição para dispensa não existe', 16, 1)
+		RETURN
+	END
+	ELSE
+	IF(@aprovacao LIKE 'Aprovar')
+	BEGIN
+		UPDATE matricula_disciplina
+		SET situacao = 'Dispensado', nota_final = 'D'
+		WHERE codigo_matricula = @codigomatricula
+			AND codigo_disciplina = @codigodisciplina
+
+		DELETE dispensa
+		WHERE aluno_ra = @alunora
+
+		SET @saida = 'Pedido de dispensa aprovado com sucesso'
+	END
+	ELSE
+	IF(@aprovacao LIKE 'Recusar')
+	BEGIN
+		DELETE dispensa
+		WHERE aluno_ra = @alunora
+
+		SET @saida = 'Pedido de dispensa recusado com sucesso'
+	END
+	ELSE
+	BEGIN
+		RAISERROR('Erro desconhecido', 16, 1)
+		RETURN
+	END
+END
+
+DECLARE @codigomatricula INT
+EXEC sp_gerarmatricula 202411113, @codigomatricula OUTPUT
+
+DECLARE @saida VARCHAR(200)
+EXEC sp_inserirmatricula 202411113, @codigomatricula, 1004, @saida
+PRINT @saida
+
+SELECT * FROM aluno
+SELECT * FROM matricula_disciplina
+SELECT * FROM disciplina
 SELECT * FROM dispensa
 
 -- IND02 - User Defined Functions
@@ -802,12 +856,13 @@ SELECT * FROM v_conteudo
 
 CREATE VIEW v_aluno_chamada
 AS
-SELECT DISTINCT a.nome AS nome, a.ra AS ra, d.codigo AS codigo_disciplina
-FROM aluno a, matricula m, matricula_disciplina md, disciplina d
+SELECT DISTINCT a.nome AS nome, a.ra AS ra, c.codigo AS codigo_conteudo, d.codigo AS codigo_disciplina
+FROM aluno a, matricula m, matricula_disciplina md, disciplina d, conteudo c
 WHERE m.aluno_ra = a.ra
 	AND md.codigo_matricula = m.codigo
 	AND md.codigo_disciplina = d.codigo
 	AND md.situacao = 'Em curso'
+	AND d.codigo = c.codigo_disciplina
 
 CREATE VIEW v_disciplinas_aluno
 AS
@@ -824,16 +879,26 @@ WHERE d.curso_codigo = c.codigo
 
 CREATE VIEW v_dispensas
 AS
-SELECT d.aluno_ra AS aluno_ra, d.codigo_disciplina AS codigo_disciplina, d.motivo AS motivo
-FROM dispensa d
+SELECT d.aluno_ra AS aluno_ra, d.codigo_disciplina AS codigo_disciplina, d.motivo AS motivo, a.nome AS aluno_nome, c.nome AS curso_nome, di.nome AS disciplina_nome
+FROM dispensa d, aluno a, disciplina di, curso c
+WHERE a.ra = d.aluno_ra
+	AND di.codigo = d.codigo_disciplina
+	AND c.codigo = a.curso_codigo
 
 SELECT * FROM v_dispensas
 
 SELECT * FROM v_disciplinas_aluno WHERE ra = 202411113
 
 SELECT * FROM matricula_disciplina
+UPDATE matricula_disciplina
+SET situacao = 'Em curso'
+WHERE codigo_disciplina = 1001
+	AND codigo_matricula = 1000004
+
 SELECT * FROM v_professor
-SELECT * from v_aluno_chamada WHERE codigo_disciplina = 1010
+SELECT * from v_aluno_chamada
+SELECT * FROM conteudo
+SELECT * FROM matricula_disciplina
 
 -- IND04 - Inserções para teste
 --------------------------------------------------------------------------------------

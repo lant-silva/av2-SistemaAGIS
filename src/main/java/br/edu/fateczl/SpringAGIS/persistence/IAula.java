@@ -7,5 +7,5 @@ import br.edu.fateczl.SpringAGIS.model.Aluno;
 import br.edu.fateczl.SpringAGIS.model.Disciplina;
 
 public interface IAula {	
-	public List<Aluno> listarAlunos(Disciplina d) throws SQLException, ClassNotFoundException;
+	public List<Aluno> listarAlunos(int conteudo) throws SQLException, ClassNotFoundException;
 }

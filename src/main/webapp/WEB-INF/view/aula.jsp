@@ -74,19 +74,22 @@
 								<th>Aula 2</th>
 								<th>Aula 3</th>
 								<th>Aula 4</th>
-								<th>Marcar tudo</th>
 							</tr>
 						</thead>
 						<tbody>
 							<c:forEach var="a" items="${alunos }">
 								<td><c:out value="${a.nome }"></c:out></td>
 								<td><c:out value="${a.ra }"></c:out></td>
-								<td><input type="checkbox" name="p1" value="0"></td>
-								<td><input type="checkbox" name="p2" value="0"></td>
-								<td><input type="checkbox" name="p3" value="0"></td>
-								<td><input type="checkbox" name="p4" value="0"></td>
-								<td><input type="checkbox" name="pAll" value="0" onclick="checkAll()"></td>
+								<td>
+									<select class="input_data" id="presenca" name="presenca">
+										<option value="1">1</option>
+										<option value="2">2</option>
+										<option value="3">3</option>
+										<option value="4">4</option>
+									</select>
+								</td>
 							</c:forEach>
+							<td><input type="submit" id="botao" name="botao" value="Finalizar Chamada" ></td>
 						</tbody>
 					</table>
 				</c:if>
@@ -94,12 +97,4 @@
 		</form>
 	</div>
 </body>
-<script>
-	function checkAll(){
-		document.getElementById("p1").checked = true
-		document.getElementById("p2").checked = true
-		document.getElementById("p3").checked = true
-		document.getElementById("p4").checked = true
-	}
-</script>
 </html>
