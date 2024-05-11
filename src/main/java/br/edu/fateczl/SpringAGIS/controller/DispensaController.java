@@ -98,4 +98,6 @@ public class DispensaController {
 	private List<Disciplina> listarDisciplinas(String ra) throws ClassNotFoundException, SQLException {
 		return dDao.listarDisciplinasPorAluno(ra);
 	}
+	
+	
 }

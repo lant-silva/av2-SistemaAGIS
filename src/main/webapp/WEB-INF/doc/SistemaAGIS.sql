@@ -580,7 +580,7 @@ BEGIN
 	END
 END
 
-CREATE PROCEDURE sp_alunodispensa(@alunora CHAR(9), @codigodisciplina INT, @motivo VARCHAR(200), @saida VARCHAR(200) OUTPUT)
+CREATE  PROCEDURE sp_alunodispensa(@alunora CHAR(9), @codigodisciplina INT, @motivo VARCHAR(200), @saida VARCHAR(200) OUTPUT)
 AS
 BEGIN
 	IF EXISTS(SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
@@ -596,44 +596,69 @@ BEGIN
 	END
 END
 
-CREATE PROCEDURE sp_concluirdispensa(@alunora CHAR(9), @codigodisciplina INT, @aprovacao VARCHAR(100), @saida VARCHAR(200) OUTPUT)
+
+ALTER TABLE matricula_disciplina
+ALTER COLUMN nota_final VARCHAR(10) -- ajuste o tamanho conforme necessário
+
+CREATE  PROCEDURE sp_concluirdispensa
+    @alunora CHAR(9),
+    @codigodisciplina INT,
+    @aprovacao VARCHAR(100),
+    @saida VARCHAR(200) OUTPUT
 AS
 BEGIN
-	DECLARE @codigomatricula INT
-	SELECT TOP 1 @codigomatricula = m.codigo FROM aluno a, matricula m WHERE a.ra = m.aluno_ra ORDER BY m.codigo DESC
+    BEGIN TRY
+        IF NOT EXISTS (SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
+        BEGIN
+            SET @saida = 'A requisição para dispensa não existe'
+            RETURN
+        END
 
-	IF NOT EXISTS(SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
-	BEGIN
-		RAISERROR('A requisição para dispensa não existe', 16, 1)
-		RETURN
-	END
-	ELSE
-	IF(@aprovacao LIKE 'Aprovar')
-	BEGIN
-		UPDATE matricula_disciplina
-		SET situacao = 'Dispensado', nota_final = 'D'
-		WHERE codigo_matricula = @codigomatricula
-			AND codigo_disciplina = @codigodisciplina
+        DECLARE @codigomatricula INT
+        SELECT TOP 1 @codigomatricula = codigo FROM matricula WHERE aluno_ra = @alunora ORDER BY codigo DESC
 
-		DELETE dispensa
-		WHERE aluno_ra = @alunora
+        IF @aprovacao = 'Aprovar'
+        BEGIN
+            UPDATE matricula_disciplina
+            SET situacao = 'Dispensado',
+                nota_final = 'D'
+            WHERE codigo_matricula = @codigomatricula
+            AND codigo_disciplina = @codigodisciplina
 
-		SET @saida = 'Pedido de dispensa aprovado com sucesso'
-	END
-	ELSE
-	IF(@aprovacao LIKE 'Recusar')
-	BEGIN
-		DELETE dispensa
-		WHERE aluno_ra = @alunora
+            DELETE FROM dispensa
+            WHERE aluno_ra = @alunora
+            AND codigo_disciplina = @codigodisciplina
 
-		SET @saida = 'Pedido de dispensa recusado com sucesso'
-	END
-	ELSE
-	BEGIN
-		RAISERROR('Erro desconhecido', 16, 1)
-		RETURN
-	END
+            SET @saida = 'Pedido de dispensa aprovado com sucesso'
+        END
+        ELSE IF @aprovacao = 'Recusar' OR @aprovacao = 'Reprovar'
+        BEGIN
+            DELETE FROM dispensa
+            WHERE aluno_ra = @alunora
+            AND codigo_disciplina = @codigodisciplina
+
+            SET @saida = 'Pedido de dispensa recusado com sucesso'
+        END
+        ELSE
+        BEGIN
+            SET @saida = 'Aprovação desconhecida'
+            RETURN
+        END
+    END TRY
+    BEGIN CATCH
+        SET @saida = 'Erro desconhecido: ' + ERROR_MESSAGE()
+        RETURN
+    END CATCH
 END
+
+
+DECLARE @saida VARCHAR(200)
+EXEC sp_concluirdispensa '202418886', 1013, 'Reprovar', @saida OUTPUT
+SELECT @saida
+
+
+
+
 
 DECLARE @codigomatricula INT
 EXEC sp_gerarmatricula 202411113, @codigomatricula OUTPUT
@@ -1009,3 +1034,12 @@ INSERT INTO disciplina VALUES
 INSERT INTO conteudo VALUES
 (1001001, 'Aula Introdutoria', 1001, NULL),
 (1001002, 'Projeto Spring', 1001, NULL)
+
+
+-- Inserts para a tabela aluno
+INSERT INTO aluno (cpf, ra, nome, nome_social, data_nasc, telefone_celular, telefone_residencial, email_pessoal, email_corporativo, data_segundograu, instituicao_segundograu, pontuacao_vestibular, posicao_vestibular, ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo, data_primeiramatricula)
+VALUES
+('12345678901', '20211001', 'João Oliveira', NULL, '2001-01-10', '999999999', NULL, 'joao@email.com', NULL, '2019-12-20', 'Colégio Alpha', 820, 150, '2021', '1', '2021/1', '2025/2', 101, '2021-01-05'),
+('23456789012', '20211002', 'Maria Santos', NULL, '2002-05-20', '888888888', NULL, 'maria@email.com', NULL, '2020-01-10', 'Colégio Beta', 850, 120, '2021', '1', '2021/1', '2025/2', 102, '2021-01-06');
+
+
