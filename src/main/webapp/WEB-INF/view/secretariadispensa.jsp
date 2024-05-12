@@ -13,7 +13,7 @@
 </head>
 <body>
     <div align="center" class="container">
-        <form id="dispensaForm" action="secretariadispensa" method="post">
+        <form action="secretariadispensa" method="post">
             <!-- Verifica se há dispensas a serem exibidas -->
             <c:if test="${not empty dispensas }">
                 <table class="table_round">

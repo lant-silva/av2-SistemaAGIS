@@ -23,11 +23,9 @@
 						<select class="input_data" id="disciplina" name="disciplina">
 								<option value="0">Escolha uma Disciplina</option>
 								<c:forEach var="d" items="${disciplinas }">
-									<c:if test="${empty disciplina }">
 										<option value="${d.codigo }">
 											<c:out value="${d.nome }"/>
 										</option>									
-									</c:if>
 								</c:forEach>
 								<tr>
 								<td colspan="4"><input class="input_data" type="date"
