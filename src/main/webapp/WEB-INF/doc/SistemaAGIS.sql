@@ -81,8 +81,7 @@ GO
 CREATE TABLE conteudo(
 codigo					INT				NOT NULL,
 descricao				VARCHAR(200)	NOT NULL,
-codigo_disciplina		INT				NOT NULL,
-data_aula				DATE			NULL
+codigo_disciplina		INT				NOT NULL
 PRIMARY KEY(codigo)
 FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 )
@@ -99,21 +98,21 @@ CREATE TABLE matricula_disciplina(
 codigo_matricula		INT				NOT NULL,
 codigo_disciplina		INT				NOT NULL,
 situacao				VARCHAR(50)		NOT NULL,
-qtd_faltas			INT				NOT NULL,
-nota_final				FLOAT			NOT NULL
+qtd_faltas				INT				NOT NULL,
+nota_final				CHAR(2)			NOT NULL
 PRIMARY KEY(codigo_matricula, codigo_disciplina)
 FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo),
 FOREIGN KEY(codigo_matricula) REFERENCES matricula(codigo)
 )
 GO
 CREATE TABLE aula(
-aula_codigo				INT				NOT NULL	IDENTITY(1000000, 1),
 matricula_codigo		INT				NOT NULL,
-conteudo_codigo			INT				NOT NULL,
-presenca				CHAR(1)			NOT NULL
-PRIMARY KEY(matricula_codigo, aula_codigo)
+disciplina_codigo		INT				NOT NULL,
+data_aula				DATE			NOT NULL,
+presenca				INT				NOT NULL
+PRIMARY KEY(matricula_codigo, disciplina_codigo, data_aula)
 FOREIGN KEY(matricula_codigo) REFERENCES matricula(codigo),
-FOREIGN KEY(conteudo_codigo) REFERENCES conteudo(codigo)
+FOREIGN KEY(disciplina_codigo) REFERENCES disciplina(codigo)
 )
 GO
 CREATE TABLE dispensa(
@@ -439,9 +438,6 @@ BEGIN
 	WHERE codigo_matricula = @codigomatricula 
 		AND codigo_disciplina = @codigodisciplina
 	SET @saida = 'Matricula finalizada.'
-
-	INSERT INTO aula VALUES
-	()
 END
 ELSE
 BEGIN
@@ -580,7 +576,7 @@ BEGIN
 	END
 END
 
-CREATE PROCEDURE sp_alunodispensa(@alunora CHAR(9), @codigodisciplina INT, @motivo VARCHAR(200), @saida VARCHAR(200) OUTPUT)
+CREATE  PROCEDURE sp_alunodispensa(@alunora CHAR(9), @codigodisciplina INT, @motivo VARCHAR(200), @saida VARCHAR(200) OUTPUT)
 AS
 BEGIN
 	IF EXISTS(SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
@@ -596,13 +592,24 @@ BEGIN
 	END
 END
 
-CREATE PROCEDURE sp_concluirdispensa(@alunora CHAR(9), @codigodisciplina INT, @aprovacao VARCHAR(100), @saida VARCHAR(200) OUTPUT)
+CREATE  PROCEDURE sp_concluirdispensa
+    @alunora CHAR(9),
+    @codigodisciplina INT,
+    @aprovacao VARCHAR(100),
+    @saida VARCHAR(200) OUTPUT
 AS
 BEGIN
-	DECLARE @codigomatricula INT
-	SELECT TOP 1 @codigomatricula = m.codigo FROM aluno a, matricula m WHERE a.ra = m.aluno_ra ORDER BY m.codigo DESC
+    BEGIN TRY
+        IF NOT EXISTS (SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
+        BEGIN
+            SET @saida = 'A requisição para dispensa não existe'
+            RETURN
+        END
 
-	IF NOT EXISTS(SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
+        DECLARE @codigomatricula INT
+        SELECT TOP 1 @codigomatricula = codigo FROM matricula WHERE aluno_ra = @alunora ORDER BY codigo DESC
+
+	IF NOT EXISTS(SELECT codigo_disciplina FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
 	BEGIN
 		RAISERROR('A requisição para dispensa não existe', 16, 1)
 		RETURN
@@ -615,25 +622,59 @@ BEGIN
 		WHERE codigo_matricula = @codigomatricula
 			AND codigo_disciplina = @codigodisciplina
 
-		DELETE dispensa
-		WHERE aluno_ra = @alunora
+            DELETE FROM dispensa
+            WHERE aluno_ra = @alunora
+            AND codigo_disciplina = @codigodisciplina
 
-		SET @saida = 'Pedido de dispensa aprovado com sucesso'
-	END
-	ELSE
-	IF(@aprovacao LIKE 'Recusar')
-	BEGIN
-		DELETE dispensa
-		WHERE aluno_ra = @alunora
+            SET @saida = 'Pedido de dispensa aprovado com sucesso'
+        END
+        ELSE IF @aprovacao = 'Recusar' OR @aprovacao = 'Reprovar'
+        BEGIN
+            DELETE FROM dispensa
+            WHERE aluno_ra = @alunora
+            AND codigo_disciplina = @codigodisciplina
+		AND codigo_disciplina = @codigodisciplina
 
-		SET @saida = 'Pedido de dispensa recusado com sucesso'
-	END
-	ELSE
+            SET @saida = 'Pedido de dispensa recusado com sucesso'
+        END
+        ELSE
+        BEGIN
+            SET @saida = 'Aprovação desconhecida'
+            RETURN
+        END
+    END TRY
+    BEGIN CATCH
+        SET @saida = 'Erro desconhecido: ' + ERROR_MESSAGE()
+        RETURN
+    END CATCH
+END
+
+CREATE PROCEDURE sp_inseriraula(@codigomatricula INT, @codigodisciplina INT, @presenca INT, @dataAula DATE, @saida VARCHAR(200) OUTPUT)
+AS
+BEGIN
+	IF EXISTS(SELECT TOP 1 * FROM aula WHERE matricula_codigo = @codigomatricula AND disciplina_codigo = @codigodisciplina AND data_aula = @dataAula)
 	BEGIN
-		RAISERROR('Erro desconhecido', 16, 1)
+		RAISERROR('Chamada para o dia selecionado já foi realizada', 16, 1)
 		RETURN
 	END
+	ELSE
+	BEGIN
+		INSERT INTO aula (matricula_codigo, disciplina_codigo, data_aula, presenca)VALUES
+		(@codigomatricula, @codigodisciplina, @dataAula, @presenca)
+		 
+		--definir o total de faltas pro aluno
+		UPDATE matricula_disciplina
+		SET qtd_faltas = qtd_faltas + (4 - @presenca)
+		WHERE codigo_matricula = @codigomatricula
+			AND codigo_disciplina = @codigodisciplina
+
+		SET @saida = 'Chamada finalizada'
+	END
 END
+
+DECLARE @saida VARCHAR(200)
+EXEC sp_concluirdispensa '202413949', 1012, 'Aprovar', @saida OUTPUT
+PRINT @saida 
 
 DECLARE @codigomatricula INT
 EXEC sp_gerarmatricula 202411113, @codigomatricula OUTPUT
@@ -646,6 +687,7 @@ SELECT * FROM aluno
 SELECT * FROM matricula_disciplina
 SELECT * FROM disciplina
 SELECT * FROM dispensa
+SELECT * FROM aula
 
 -- IND02 - User Defined Functions
 ---------------------------------------------------------------------------
@@ -848,7 +890,7 @@ FROM professor p
 
 CREATE VIEW v_conteudo
 AS
-SELECT c.codigo AS codigo, c.codigo_disciplina AS codigo_disciplina, c.descricao AS descricao, c.data_aula AS data_aula
+SELECT c.codigo AS codigo, c.codigo_disciplina AS codigo_disciplina, c.descricao AS descricao
 FROM conteudo c, disciplina d
 WHERE c.codigo_disciplina = d.codigo
 
@@ -856,13 +898,12 @@ SELECT * FROM v_conteudo
 
 CREATE VIEW v_aluno_chamada
 AS
-SELECT DISTINCT a.nome AS nome, a.ra AS ra, c.codigo AS codigo_conteudo, d.codigo AS codigo_disciplina
-FROM aluno a, matricula m, matricula_disciplina md, disciplina d, conteudo c
+SELECT DISTINCT a.nome AS nome, a.ra AS ra, d.codigo AS codigo_disciplina, m.aluno_ra AS aluno_ra
+FROM aluno a, matricula m, matricula_disciplina md, disciplina d
 WHERE m.aluno_ra = a.ra
 	AND md.codigo_matricula = m.codigo
 	AND md.codigo_disciplina = d.codigo
 	AND md.situacao = 'Em curso'
-	AND d.codigo = c.codigo_disciplina
 
 CREATE VIEW v_disciplinas_aluno
 AS
@@ -885,6 +926,14 @@ WHERE a.ra = d.aluno_ra
 	AND di.codigo = d.codigo_disciplina
 	AND c.codigo = a.curso_codigo
 
+CREATE VIEW v_aula
+AS
+SELECT a.disciplina_codigo AS disciplina_codigo, a.matricula_codigo AS matricula_codigo, a.data_aula AS data_aula
+FROM aula a, disciplina d, matricula_disciplina md, matricula m 
+WHERE a.disciplina_codigo = d.codigo
+	AND a.matricula_codigo = md.codigo_matricula
+	AND md.codigo_disciplina = d.codigo		
+
 SELECT * FROM v_dispensas
 
 SELECT * FROM v_disciplinas_aluno WHERE ra = 202411113
@@ -895,8 +944,27 @@ SET situacao = 'Em curso'
 WHERE codigo_disciplina = 1001
 	AND codigo_matricula = 1000004
 
+CREATE TRIGGER t_reprovarfalta ON matricula_disciplina
+AFTER UPDATE
+AS
+BEGIN
+	DECLARE @codigomatricula INT
+	DECLARE @codigodisciplina INT
+	DECLARE @qtdfaltas INT
+	
+	SELECT @codigomatricula = codigo_matricula, @codigodisciplina = codigo_disciplina, @qtdfaltas = qtd_faltas FROM INSERTED
+	IF(@qtdfaltas > 20)
+	BEGIN
+		UPDATE matricula_disciplina
+		SET situacao = 'Reprovado por Falta'
+		WHERE codigo_matricula = @codigomatricula
+			AND codigo_disciplina = @codigodisciplina
+	END
+END
+
 SELECT * FROM v_professor
 SELECT * from v_aluno_chamada
+SELECT * FROM aula
 SELECT * FROM conteudo
 SELECT * FROM matricula_disciplina
 
@@ -965,7 +1033,7 @@ INSERT INTO disciplina VALUES
 (1040, 'Programação para Mainframes', 4, '14:50', '18:20', 'Quarta', 101, 1004)
 
 INSERT INTO disciplina VALUES
---(1041, 'Desenvolvimento de Aplicações Distribuídas', 4, '13:00', '16:30', 'Segunda', 102),
+(1041, 'Desenvolvimento de Aplicações Distribuídas', 4, '13:00', '16:30', 'Segunda', 102),
 (1042, 'Segurança de Aplicações Web', 4, '13:00', '16:30', 'Segunda', 102),
 (1043, 'Banco de Dados NoSQL', 4, '13:00', '16:30', 'Terça', 102),
 (1044, 'Gerenciamento de Projetos de Software Ágil', 4, '13:00', '16:30', 'Terça', 102),
@@ -1007,5 +1075,23 @@ INSERT INTO disciplina VALUES
 (1080, 'Kanban e Lean para Desenvolvimento de Software', 2, '13:00', '14:40', 'Sexta', 102)
 
 INSERT INTO conteudo VALUES
-(1001001, 'Aula Introdutoria', 1001, NULL),
-(1001002, 'Projeto Spring', 1001, NULL)
+(1001001, 'Aula Introdutoria', 1001),
+(1001002, 'Projeto Spring', 1001)
+
+
+-- Inserts para a tabela aluno
+INSERT INTO aluno (cpf, ra, nome, nome_social, data_nasc, telefone_celular, telefone_residencial, email_pessoal, email_corporativo, data_segundograu, instituicao_segundograu, pontuacao_vestibular, posicao_vestibular, ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo, data_primeiramatricula)
+VALUES
+('12345678901', '20211001', 'João Oliveira', NULL, '2001-01-10', '999999999', NULL, 'joao@email.com', NULL, '2019-12-20', 'Colégio Alpha', 820, 150, '2021', '1', '2021/1', '2025/2', 101, '2021-01-05'),
+('23456789012', '20211002', 'Maria Santos', NULL, '2002-05-20', '888888888', NULL, 'maria@email.com', NULL, '2020-01-10', 'Colégio Beta', 850, 120, '2021', '1', '2021/1', '2025/2', 102, '2021-01-06');
+
+
+
+
+-- Inserts para a tabela aluno
+INSERT INTO aluno (cpf, ra, nome, nome_social, data_nasc, telefone_celular, telefone_residencial, email_pessoal, email_corporativo, data_segundograu, instituicao_segundograu, pontuacao_vestibular, posicao_vestibular, ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo, data_primeiramatricula)
+VALUES
+('12345678901', '20211001', 'João Oliveira', NULL, '2001-01-10', '999999999', NULL, 'joao@email.com', NULL, '2019-12-20', 'Colégio Alpha', 820, 150, '2021', '1', '2021/1', '2025/2', 101, '2021-01-05'),
+('23456789012', '20211002', 'Maria Santos', NULL, '2002-05-20', '888888888', NULL, 'maria@email.com', NULL, '2020-01-10', 'Colégio Beta', 850, 120, '2021', '1', '2021/1', '2025/2', 102, '2021-01-06');
+
+

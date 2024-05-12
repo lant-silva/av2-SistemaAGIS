@@ -16,12 +16,15 @@ import org.springframework.web.servlet.ModelAndView;
 import br.edu.fateczl.SpringAGIS.model.Aluno;
 import br.edu.fateczl.SpringAGIS.model.Conteudo;
 import br.edu.fateczl.SpringAGIS.model.Disciplina;
-import br.edu.fateczl.SpringAGIS.model.Professor;
+import br.edu.fateczl.SpringAGIS.model.Matricula;
 import br.edu.fateczl.SpringAGIS.persistence.AulaDao;
 import br.edu.fateczl.SpringAGIS.persistence.ConteudoDao;
 import br.edu.fateczl.SpringAGIS.persistence.DisciplinaDao;
 import br.edu.fateczl.SpringAGIS.persistence.GenericDao;
+import br.edu.fateczl.SpringAGIS.persistence.MatriculaDisciplinaDao;
 import br.edu.fateczl.SpringAGIS.persistence.ProfessorDao;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class AulaController {
@@ -41,9 +44,13 @@ public class AulaController {
 	@Autowired
 	ConteudoDao cDao;
 	
+	@Autowired
+	MatriculaDisciplinaDao mdDao;
+	
 	@RequestMapping(name = "aula", value="/aula", method = RequestMethod.GET)
-	public ModelAndView aulaGet (@RequestParam Map<String, String> allRequestParam, ModelMap model) {
-		String erro = "";
+	public ModelAndView aulaGet (@RequestParam Map<String, String> allRequestParam, HttpServletRequest request, ModelMap model) {
+		HttpSession session = request.getSession();
+		String erro = "";	
 		List<Disciplina> disciplinas = new ArrayList<>();
 		
 		try {
@@ -51,8 +58,8 @@ public class AulaController {
 		} catch(SQLException | ClassNotFoundException e){
 			erro = e.getMessage();
 		} finally {
+			session.setAttribute("disciplinas", disciplinas);
 			model.addAttribute("erro", erro);
-			model.addAttribute("disciplinas", disciplinas);
 		}
 		return new ModelAndView("aula");
 	}
@@ -64,50 +71,67 @@ public class AulaController {
 
 
 	@RequestMapping(name = "aula", value="/aula", method = RequestMethod.POST)
-	public ModelAndView aulaPost (@RequestParam Map<String, String> allRequestParam, ModelMap model) {
+	public ModelAndView aulaPost (@RequestParam Map<String, String> allRequestParam, HttpServletRequest request, ModelMap model) {
+		HttpSession session = request.getSession();
+		Map<String, String[]> parametros = request.getParameterMap();
 		String cmd = allRequestParam.get("botao");
 		String disciplina = allRequestParam.get("disciplina");
-		String conteudo = allRequestParam.get("conteudo");
+		String dataAula = allRequestParam.get("dataAula");
 		
-		String saida = "";
+		String[] presenca = new String[50];
 		String erro = "";
-		boolean foundD = false;
+		String saida = "";
 		Disciplina d = new Disciplina();
-		Conteudo c = new Conteudo();
+		int qtdaula = 0;
+		boolean finalizou = false;
+		List<Integer> presencas = new ArrayList<>();
 		List<Aluno> alunos = new ArrayList<>();
-		List<Conteudo> conteudos = new ArrayList<>();
 		List<Disciplina> disciplinas = new ArrayList<>();
 		
 		try {
-			disciplinas = listarDisciplinas();
-			d.setCodigo(Integer.parseInt(disciplina));
-			if(cmd.contains("Iniciar Gerenciamento")) {
-				conteudos = listarConteudosDisciplina(d);
-				foundD = true;
-			}
+			disciplinas = listarDisciplinas();			
 			if(cmd.contains("Iniciar Chamada")) {
-				alunos = listarAlunos(Integer.parseInt(conteudo));
+				d.setCodigo(Integer.parseInt(disciplina));
+				d = dDao.consultar(d);
+				qtdaula = d.getQtdAulas();
+				alunos = listarAlunos(Integer.parseInt(disciplina));
+			}
+			if(cmd.contains("Finalizar Chamada")) {
+				d = (Disciplina) session.getAttribute("disciplina");
+				alunos = (List<Aluno>) session.getAttribute("alunos");
+				for(String key : parametros.keySet()) {
+					if(key.startsWith("presenca")) {
+						presenca = parametros.get(key);
+					}
+				}
+				saida = finalizarChamada(alunos, presenca, d.getCodigo(), dataAula);
+				finalizou = true;
 			}
 		} catch (SQLException | ClassNotFoundException e) {
 			erro = e.getMessage();
 		} finally {
+			session.setAttribute("alunos", alunos);
+			session.setAttribute("disciplina", d);
+			model.addAttribute("disciplinas", disciplinas);
+			model.addAttribute("dataAula", dataAula);
 			model.addAttribute("saida", saida);
 			model.addAttribute("erro", erro);
-			model.addAttribute("conteudos", conteudos);
-			model.addAttribute("disciplinas", disciplinas);
-			model.addAttribute("disciplina", d);
-			model.addAttribute("conteudo", c);
-			model.addAttribute("alunos", alunos);
-			model.addAttribute("foundD", foundD);
+			if(finalizou) {
+				session.removeAttribute("alunos");
+			}
 		}
 		
 		return new ModelAndView("aula");
 	}
 	
-	private List<Conteudo> listarConteudosDisciplina(Disciplina d) throws ClassNotFoundException, SQLException {
-		return cDao.listarPorDisciplina(d);
+	private String finalizarChamada(List<Aluno> alunos, String[] presenca, int disciplina, String dataAula) throws ClassNotFoundException, SQLException {
+		String saida = "Chamada finalizada";
+		for(int i=0;i<=alunos.size()-1;i++) {
+			Matricula matricula = mdDao.consultarUltimaMatricula(alunos.get(i).getRa());
+			saida = aDao.inserirAula(matricula.getCodigo(), disciplina, Integer.parseInt(presenca[i]), dataAula);
+		}
+		return saida;
 	}
-
 
 	private List<Aluno> listarAlunos(int conteudo) throws ClassNotFoundException, SQLException {
 		return aDao.listarAlunos(conteudo);

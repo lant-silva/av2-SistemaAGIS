@@ -45,7 +45,7 @@ public class MatriculaController{
 	public ModelAndView matriculaPost (@RequestParam Map<String, String> allRequestParam, HttpServletRequest request, ModelMap model) {
 		Map<String, String[]> parametros = request.getParameterMap();
 		String cmd = allRequestParam.get("botao");
-		String ra = allRequestParam.get("ra");
+		String ra = allRequestParam.get("ra") ;
 		Matricula matricula = new Matricula();	
 		String[] disciplinasSelecionadas = new String[50];
 		
@@ -91,7 +91,6 @@ public class MatriculaController{
 			model.addAttribute("disciplinas", matriculaDisciplinas);
 			model.addAttribute("aluno", a);
 			model.addAttribute("listar", listar);
-			
 		}
 		
 		return new ModelAndView("matricula");

@@ -29,29 +29,19 @@
 										</option>									
 									</c:if>
 								</c:forEach>
+								<tr>
+								<td colspan="4"><input class="input_data" type="date"
+									id="dataAula" name="dataAula" 
+									value='<c:out value="${dataAula}"></c:out>'>
+								</td>
+							</tr>
 						</select>
 					</td>
 					<td>
-						<input type="submit" id="botao" name="botao" value="Iniciar Gerenciamento">
+						<input type="submit" id="botao" name="botao" value="Iniciar Chamada">
 					<td />
 				</tr>
 				</br>
-				<tr>
-					<c:if test="${foundD eq true }">
-						<select class="input_data" id="conteudo" name="conteudo">
-							<option value="0">Escolha a Aula</option>
-							<c:forEach var="c" items="${conteudos }">
-								<c:if test="${c.codigoDisciplina eq disciplina.codigo}">
-									<option value="${c.codigo }">
-										<c:out value="${c.descricao }"/>
-									</option>									
-								</c:if>
-							</c:forEach>
-						</select>
-						<td>
-							<input type="submit" id="botao" name="botao" value="Iniciar Chamada">
-						<td />
-					</c:if>
 				</tr>
 				<div align="center">
 					<c:if test="${not empty erro }">
@@ -60,36 +50,55 @@
 						</H2>
 					</c:if>
 				</div>
+				<div align="center">
+					<c:if test="${not empty saida }">
+						<H2>
+							<b><c:out value="${saida }" /></b>
+						</H2>
+					</c:if>
+				</div>
 			</table>
 			</br>
 			<div>
-				<H2><b>Aula - </b><c:out value="${conteudo.descricao }"></c:out></H2>
+				<H2><b>Aula - </b><c:out value="${disciplina.nome }"></c:out></H2>
 				<c:if test="${not empty alunos }">
 					<table class="table_round">
 						<thead>
 							<tr>
 								<th>Nome</th>
 								<th>RA</th>
-								<th>Aula 1</th>
-								<th>Aula 2</th>
-								<th>Aula 3</th>
-								<th>Aula 4</th>
+								<th>Presença</th>
+								<th></th>
 							</tr>
 						</thead>
 						<tbody>
 							<c:forEach var="a" items="${alunos }">
+							<tr>
 								<td><c:out value="${a.nome }"></c:out></td>
 								<td><c:out value="${a.ra }"></c:out></td>
 								<td>
-									<select class="input_data" id="presenca" name="presenca">
-										<option value="1">1</option>
-										<option value="2">2</option>
-										<option value="3">3</option>
-										<option value="4">4</option>
-									</select>
+								<c:choose>
+									<c:when test="${disciplina.qtdAulas == 2 }">
+										<select class="input-data" name="presenca" id="presenca">
+											<option value="0">0</option>
+											<option value="1">1</option>
+											<option value="2">2</option>
+										</select>
+									</c:when>
+									<c:otherwise>
+										<select class="input-data" name="presenca" id="presenca">
+											<option value="0">0</option>
+											<option value="1">1</option>
+											<option value="2">2</option>
+											<option value="3">3</option>
+											<option value="4">4</option>
+										</select>
+									</c:otherwise>
+								</c:choose>
 								</td>
+							</tr>
 							</c:forEach>
-							<td><input type="submit" id="botao" name="botao" value="Finalizar Chamada" ></td>
+							<td align="center"><input type="submit" id="botao" name="botao" value="Finalizar Chamada" ></td>
 						</tbody>
 					</table>
 				</c:if>
