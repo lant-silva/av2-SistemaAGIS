@@ -796,6 +796,7 @@ BEGIN
 	RETURN
 END
 
+
 CREATE FUNCTION fn_historico(@ra CHAR(9))
 RETURNS @tabela TABLE(
 ra CHAR(9),
@@ -1077,15 +1078,6 @@ INSERT INTO disciplina VALUES
 INSERT INTO conteudo VALUES
 (1001001, 'Aula Introdutoria', 1001),
 (1001002, 'Projeto Spring', 1001)
-
-
--- Inserts para a tabela aluno
-INSERT INTO aluno (cpf, ra, nome, nome_social, data_nasc, telefone_celular, telefone_residencial, email_pessoal, email_corporativo, data_segundograu, instituicao_segundograu, pontuacao_vestibular, posicao_vestibular, ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo, data_primeiramatricula)
-VALUES
-('12345678901', '20211001', 'João Oliveira', NULL, '2001-01-10', '999999999', NULL, 'joao@email.com', NULL, '2019-12-20', 'Colégio Alpha', 820, 150, '2021', '1', '2021/1', '2025/2', 101, '2021-01-05'),
-('23456789012', '20211002', 'Maria Santos', NULL, '2002-05-20', '888888888', NULL, 'maria@email.com', NULL, '2020-01-10', 'Colégio Beta', 850, 120, '2021', '1', '2021/1', '2025/2', 102, '2021-01-06');
-
-
 
 
 -- Inserts para a tabela aluno
