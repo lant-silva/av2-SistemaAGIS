@@ -796,7 +796,7 @@ BEGIN
 	RETURN
 END
 
-
+ 
 CREATE FUNCTION fn_historico(@ra CHAR(9))
 RETURNS @tabela TABLE(
 ra CHAR(9),

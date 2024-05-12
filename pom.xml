@@ -88,6 +88,11 @@
 			<groupId>net.sourceforge.jtds</groupId>
 			<artifactId>jtds</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>br.fateczl.edu</groupId>
+			<artifactId>SistemaGerencialLabEngSW</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>
