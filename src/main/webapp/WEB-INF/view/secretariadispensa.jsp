@@ -1,11 +1,14 @@
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="ISO-8859-1">
 <link rel="stylesheet" type="text/css" href='<c:url value = "./resources/css/styles.css"/>'>
-<title>AGIS - Confirmação de Dispensas</title>
+<title>AGIS - ConfirmaÃ§Ã£o de Dispensas</title>
 <header>
-    <h1 align="center">Requisição de Dispensa</h1>
+    <h1 align="center">RequisiÃ§Ã£o de Dispensa</h1>
     <div>
         <jsp:include page="menusecretaria.jsp" />
     </div>
@@ -14,7 +17,7 @@
 <body>
     <div align="center" class="container">
         <form action="secretariadispensa" method="post">
-            <!-- Verifica se há dispensas a serem exibidas -->
+            <!-- Verifica se hÃ¡ dispensas a serem exibidas -->
             <c:if test="${not empty dispensas }">
                 <table class="table_round">
                     <thead>
@@ -24,7 +27,7 @@
                             <th>Curso</th>
                             <th>Disciplina</th>
                             <th>Motivo</th>
-                            <th>Aprovação</th>
+                            <th>AprovaÃ§Ã£o</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -37,14 +40,14 @@
                                 <td><c:out value="${d.nomeCurso}" /></td>
                                 <td><c:out value="${d.disciplina.nome}" /></td>
                                 <td><c:out value="${d.motivo}" /></td>
-                                <!-- Dropdown para selecionar a aprovação -->
+                                <!-- Dropdown para selecionar a aprovaÃ§Ã£o -->
                                 <td>
                                     <select class="input_data" id="aprovacao_${d.aluno.ra}_${d.disciplina.codigo}" name="aprovacao_${d.aluno.ra}_${d.disciplina.codigo}">
                                         <option value="Recusar">Recusar</option>
                                         <option value="Aprovar">Aprovar</option>
                                     </select>
                                 </td>
-                                <!-- Botão para concluir a dispensa -->
+                                <!-- BotÃ£o para concluir a dispensa -->
                                 <td>
                                     <button type="button" onclick="resolverDispensa('${d.aluno.ra}', '${d.disciplina.codigo}', document.getElementById('aprovacao_${d.aluno.ra}_${d.disciplina.codigo}').value)">Concluir</button>
                                 </td>
@@ -54,7 +57,7 @@
                 </table>
             </c:if>
             <br />
-            <!-- Exibe a mensagem de saída, se houver -->
+            <!-- Exibe a mensagem de saÃ­da, se houver -->
             <div align="center">
                 <c:if test="${not empty saida }">
                     <h2><b><c:out value="${saida }" /></b></h2>
@@ -71,14 +74,14 @@
     </div>
 </body>
 <script>
-// Função para concluir a dispensa
+// FunÃ§Ã£o para concluir a dispensa
 function resolverDispensa(alunora, disciplina) {      
-    // Exibe um prompt de confirmação
+    // Exibe um prompt de confirmaÃ§Ã£o
     if (confirm("Tem certeza que deseja concluir?")) {
-        // Obtém o valor da aprovação selecionada
+        // ObtÃ©m o valor da aprovaÃ§Ã£o selecionada
         var aprovacao = document.getElementById('aprovacao_' + alunora + '_' + disciplina).value;
      
-        // Faz uma requisição POST para o servidor com os dados da dispensa
+        // Faz uma requisiÃ§Ã£o POST para o servidor com os dados da dispensa
         fetch('secretariadispensa', {
             method: 'POST',
             headers: {
@@ -93,11 +96,11 @@ function resolverDispensa(alunora, disciplina) {
         .then(response => response.text()) // Converte a resposta para texto
         .then(data => {
             console.log(data); // Exibe a resposta no console
-            // Remove a linha da tabela correspondente à dispensa concluída
+            // Remove a linha da tabela correspondente Ã  dispensa concluÃ­da
             var row = document.getElementById('dispensa_' + alunora + '_' + disciplina);
             row.remove();
             // Exibe uma mensagem de sucesso
-            alert('Dispensa concluída com sucesso!');
+            alert('Dispensa concluÃ­da com sucesso!');
         })
         .catch(error => {
             console.error('Erro:', error); // Exibe erro no console

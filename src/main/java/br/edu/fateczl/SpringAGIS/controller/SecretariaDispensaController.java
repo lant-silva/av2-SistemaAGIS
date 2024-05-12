@@ -64,6 +64,9 @@ public class SecretariaDispensaController {
         String ra = requestBody.get("ra"); 
         String disciplina = requestBody.get("disciplina"); 
         String aprovacao = requestBody.get("aprovacao"); 
+        System.out.println(ra);
+        System.out.println(disciplina);
+        System.out.println(aprovacao);
         List<Dispensa> dispensas = new ArrayList<>();
         Aluno a = new Aluno(); 
         Disciplina d = new Disciplina(); 
