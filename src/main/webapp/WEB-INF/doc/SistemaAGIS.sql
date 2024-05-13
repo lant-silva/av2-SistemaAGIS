@@ -643,6 +643,12 @@ BEGIN
 		RETURN
 	END
 	ELSE
+	IF EXISTS(SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina AND estado = 'Pedido de dispensa recusado')
+	BEGIN
+		RAISERROR('Pedido de dispensa já foi recusado', 16, 1)
+		RETURN
+	END
+	ELSE
 	BEGIN
 		INSERT INTO dispensa VALUES
 		(@alunora, @codigodisciplina, @motivo, 'Em andamento')
