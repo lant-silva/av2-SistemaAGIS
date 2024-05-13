@@ -140,12 +140,6 @@ public class MatriculaController{
 	}
 
 
-	@RequestMapping("/matricula")
-	private List<String> requestCheckbox(@RequestParam(value = "disciplinasSelecionadas")List<String> disciplinasSelecionadas) {
-		return disciplinasSelecionadas;
-	}
-
-
 	private boolean validarDataSemestral(LocalDate dataAtual) {
 		LocalDate semestre1Inicio = LocalDate.of(LocalDate.now().getYear(), 1, 14);
 		LocalDate semestre1Final = LocalDate.of(LocalDate.now().getYear(), 1, 22);
