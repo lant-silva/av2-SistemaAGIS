@@ -9,6 +9,6 @@ public class Historico {
 	int posicaoVestibular;
 	String nomeDisciplina;
 	String nomeProfessor;
-	float notaFinal;
+	String notaFinal;
 	int qtdFaltas;
 }

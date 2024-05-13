@@ -599,23 +599,10 @@ CREATE PROCEDURE sp_concluirdispensa
     @saida VARCHAR(200) OUTPUT
 AS
 BEGIN
-    BEGIN TRY
-        IF NOT EXISTS (SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
-        BEGIN
-            SET @saida = 'A requisição para dispensa não existe'
-            RETURN
-        END
-
         DECLARE @codigomatricula INT
         SELECT TOP 1 @codigomatricula = codigo FROM matricula WHERE aluno_ra = @alunora ORDER BY codigo DESC
 
-	IF NOT EXISTS(SELECT codigo_disciplina FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
-	BEGIN
-		RAISERROR('A requisição para dispensa não existe', 16, 1)
-		RETURN
-	END
-	ELSE
-	IF(@aprovacao LIKE 'Aprovar')
+	IF(@aprovacao = 'Aprovar')
 	BEGIN
 		UPDATE matricula_disciplina
 		SET situacao = 'Dispensado', nota_final = 'D'
@@ -642,11 +629,6 @@ BEGIN
             SET @saida = 'Aprovação desconhecida'
             RETURN
         END
-    END TRY
-    BEGIN CATCH
-        SET @saida = 'Erro desconhecido: ' + ERROR_MESSAGE()
-        RETURN
-    END CATCH
 END
 
 CREATE PROCEDURE sp_inseriraula(@codigomatricula INT, @codigodisciplina INT, @presenca INT, @dataAula DATE, @saida VARCHAR(200) OUTPUT)
@@ -753,7 +735,7 @@ curso_codigo INT,
 data_matricula CHAR(6),
 situacao VARCHAR(50),
 qtd_faltas INT,
-nota_final FLOAT
+nota_final CHAR(2)
 )
 AS
 BEGIN
@@ -808,7 +790,7 @@ posicao_vestibular INT,
 codigo_disciplina INT,
 nome_discilplina VARCHAR(100),
 nome_professor VARCHAR(100),
-nota_final FLOAT,
+nota_final CHAR(2),
 qtd_faltas INT
 )
 AS
@@ -884,10 +866,16 @@ FROM curso c
 
 SELECT * FROM v_cursos
 
+-- View Professor
+----------------------------------------------------------------------------------------
+
 CREATE VIEW v_professor
 AS
 SELECT p.codigo AS codigo, p.nome AS nome, p.titulacao AS titulacao
 FROM professor p
+
+-- View Conteudo
+----------------------------------------------------------------------------------------
 
 CREATE VIEW v_conteudo
 AS
@@ -895,7 +883,8 @@ SELECT c.codigo AS codigo, c.codigo_disciplina AS codigo_disciplina, c.descricao
 FROM conteudo c, disciplina d
 WHERE c.codigo_disciplina = d.codigo
 
-SELECT * FROM v_conteudo
+-- View Chamada
+----------------------------------------------------------------------------------------
 
 CREATE VIEW v_aluno_chamada
 AS
@@ -905,6 +894,9 @@ WHERE m.aluno_ra = a.ra
 	AND md.codigo_matricula = m.codigo
 	AND md.codigo_disciplina = d.codigo
 	AND md.situacao = 'Em curso'
+
+-- View Disciplinas por aluno
+----------------------------------------------------------------------------------------
 
 CREATE VIEW v_disciplinas_aluno
 AS
@@ -919,6 +911,9 @@ WHERE d.curso_codigo = c.codigo
 	AND md.situacao NOT LIKE 'Em curso'
 	AND md.situacao = 'Não Cursado'
 
+-- View Dispensa
+----------------------------------------------------------------------------------------
+
 CREATE VIEW v_dispensas
 AS
 SELECT d.aluno_ra AS aluno_ra, d.codigo_disciplina AS codigo_disciplina, d.motivo AS motivo, a.nome AS aluno_nome, c.nome AS curso_nome, di.nome AS disciplina_nome
@@ -926,6 +921,9 @@ FROM dispensa d, aluno a, disciplina di, curso c
 WHERE a.ra = d.aluno_ra
 	AND di.codigo = d.codigo_disciplina
 	AND c.codigo = a.curso_codigo
+
+-- View Aula
+----------------------------------------------------------------------------------------
 
 CREATE VIEW v_aula
 AS
@@ -951,10 +949,13 @@ AS
 BEGIN
 	DECLARE @codigomatricula INT
 	DECLARE @codigodisciplina INT
+	DECLARE @qtdaulas INT
 	DECLARE @qtdfaltas INT
 	
 	SELECT @codigomatricula = codigo_matricula, @codigodisciplina = codigo_disciplina, @qtdfaltas = qtd_faltas FROM INSERTED
-	IF(@qtdfaltas > 20)
+	SELECT @qtdaulas = qtd_aulas FROM disciplina WHERE codigo = @codigodisciplina
+
+	IF(@qtdfaltas > @qtdaulas * 5)
 	BEGIN
 		UPDATE matricula_disciplina
 		SET situacao = 'Reprovado por Falta'

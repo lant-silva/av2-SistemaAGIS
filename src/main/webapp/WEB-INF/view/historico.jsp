@@ -68,7 +68,8 @@
 						</tr>
 					</tbody>
 				</table>
-				<table>
+				</br>
+				<table class="table_round">
 					<thead>
 						<tr>
 							<th>Cod. Disciplina</th>

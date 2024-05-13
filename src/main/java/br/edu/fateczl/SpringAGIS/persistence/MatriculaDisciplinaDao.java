@@ -68,7 +68,7 @@ public class MatriculaDisciplinaDao implements IMatricula{
 			m.setCodigoMatricula(rs.getInt("codigo_matricula"));
 			m.setSituacao(rs.getString("situacao"));
 			m.setQtdFaltas(rs.getInt("qtd_faltas"));
-			m.setNotaFinal(rs.getFloat("nota_final"));
+			m.setNotaFinal(rs.getString("nota_final"));
 			ms.add(m);
 		}
 		

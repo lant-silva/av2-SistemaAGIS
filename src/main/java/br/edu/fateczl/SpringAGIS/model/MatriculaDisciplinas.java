@@ -14,5 +14,5 @@ public class MatriculaDisciplinas {
 	int codigoMatricula;
 	String situacao;
 	int qtdFaltas;
-	float notaFinal;
+	String notaFinal;
 }
