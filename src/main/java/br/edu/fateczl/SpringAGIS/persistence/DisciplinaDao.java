@@ -79,7 +79,7 @@ public class DisciplinaDao implements IDisciplina{
 	public List<Disciplina> listarDisciplinasPorAluno(String ra) throws SQLException, ClassNotFoundException {
 		List<Disciplina> disciplinas = new ArrayList<>();
 		Connection c = gDao.getConnection();
-		String sql = "SELECT * FROM dbo.fn_listarultimamatricula(?)";
+		String sql = "SELECT * FROM dbo.fn_listarultimamatricula(?) WHERE situacao = 'Não cursado'";
 		PreparedStatement ps = c.prepareStatement(sql);
 		ps.setString(1, ra);
 		ResultSet rs = ps.executeQuery();

@@ -94,7 +94,11 @@ public class AulaController {
 				d.setCodigo(Integer.parseInt(disciplina));
 				d = dDao.consultar(d);
 				qtdaula = d.getQtdAulas();
-				alunos = listarAlunos(Integer.parseInt(disciplina));
+				if(verificarAula(d.getCodigo(), dataAula)) {
+					erro = "Aula para o dia "+dataAula+" já foi realizada";
+				}else {					
+					alunos = listarAlunos(Integer.parseInt(disciplina));
+				}
 			}
 			if(cmd.contains("Finalizar Chamada")) {
 				d = (Disciplina) session.getAttribute("disciplina");
@@ -124,6 +128,11 @@ public class AulaController {
 		return new ModelAndView("aula");
 	}
 	
+	private boolean verificarAula(int disciplina, String dataAula) throws ClassNotFoundException, SQLException {
+		return aDao.verificarAulaExistente(disciplina, dataAula);
+	}
+
+
 	private String finalizarChamada(List<Aluno> alunos, String[] presenca, int disciplina, String dataAula) throws ClassNotFoundException, SQLException {
 		String saida = "Chamada finalizada";
 		for(int i=0;i<=alunos.size()-1;i++) {

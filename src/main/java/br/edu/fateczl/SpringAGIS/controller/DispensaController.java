@@ -19,6 +19,8 @@ import br.edu.fateczl.SpringAGIS.persistence.AlunoDao;
 import br.edu.fateczl.SpringAGIS.persistence.DisciplinaDao;
 import br.edu.fateczl.SpringAGIS.persistence.DispensaDao;
 import br.edu.fateczl.SpringAGIS.persistence.GenericDao;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class DispensaController {
@@ -36,7 +38,9 @@ public class DispensaController {
 	DispensaDao disDao;
 	
 	@RequestMapping(name="dispensa", value="/dispensa", method = RequestMethod.GET)
-	public ModelAndView dispensaGet(@RequestParam Map<String, String> allRequestParam, ModelMap model) {
+	public ModelAndView dispensaGet(@RequestParam Map<String, String> allRequestParam, HttpServletRequest request, ModelMap model) {
+		HttpSession session = request.getSession();
+		session.invalidate();
 		return new ModelAndView("dispensa");
 	}
 	

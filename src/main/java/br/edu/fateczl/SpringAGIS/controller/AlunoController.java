@@ -18,6 +18,8 @@ import br.edu.fateczl.SpringAGIS.model.Curso;
 import br.edu.fateczl.SpringAGIS.persistence.AlunoDao;
 import br.edu.fateczl.SpringAGIS.persistence.CursoDao;
 import br.edu.fateczl.SpringAGIS.persistence.GenericDao;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class AlunoController {
@@ -32,7 +34,9 @@ public class AlunoController {
 	CursoDao cDao;
 	
 	@RequestMapping(name="aluno", value="/aluno", method = RequestMethod.GET)
-	public ModelAndView alunoGet(@RequestParam Map<String, String> allRequestParam, ModelMap model) {
+	public ModelAndView alunoGet(@RequestParam Map<String, String> allRequestParam, HttpServletRequest request, ModelMap model) {
+		HttpSession session = request.getSession();
+		session.invalidate();
 		String erro = "";
 		List<Curso> cursos = new ArrayList<>();
 		
