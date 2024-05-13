@@ -654,22 +654,18 @@ BEGIN
 	END
 END
 
-DECLARE @saida VARCHAR(200)
-EXEC sp_concluirdispensa '202413949', 1012, 'Aprovar', @saida OUTPUT
-PRINT @saida 
-
-DECLARE @codigomatricula INT
-EXEC sp_gerarmatricula 202411113, @codigomatricula OUTPUT
-
-DECLARE @saida VARCHAR(200)
-EXEC sp_inserirmatricula 202411113, @codigomatricula, 1004, @saida
-PRINT @saida
-
-SELECT * FROM aluno
-SELECT * FROM matricula_disciplina
-SELECT * FROM disciplina
-SELECT * FROM dispensa
-SELECT * FROM aula
+CREATE PROCEDURE sp_verificaraula(@codigodisciplina INT, @dataaula DATE, @saida BIT OUTPUT)
+AS
+BEGIN
+	IF EXISTS(SELECT * FROM aula WHERE disciplina_codigo = @codigodisciplina AND @dataaula = data_aula)
+	BEGIN
+		SET @saida = 1
+	END
+	ELSE
+	BEGIN
+		SET @saida = 0
+	END
+END
 
 -- IND02 - User Defined Functions
 ---------------------------------------------------------------------------
@@ -816,11 +812,6 @@ BEGIN
 	RETURN
 END 
 
------------------------------------------------------------------------------
-select * from aluno
-SELECT * FROM matricula_disciplina
-SELECT * FROM dbo.fn_listarultimamatricula(202416711) ORDER BY situacao, nome ASC
-
 -- View Alunos
 --------------------------------------------------------------------------
 
@@ -933,16 +924,6 @@ WHERE a.disciplina_codigo = d.codigo
 	AND a.matricula_codigo = md.codigo_matricula
 	AND md.codigo_disciplina = d.codigo		
 
-SELECT * FROM v_dispensas
-
-SELECT * FROM v_disciplinas_aluno WHERE ra = 202411113
-
-SELECT * FROM matricula_disciplina
-UPDATE matricula_disciplina
-SET situacao = 'Em curso'
-WHERE codigo_disciplina = 1001
-	AND codigo_matricula = 1000004
-
 CREATE TRIGGER t_reprovarfalta ON matricula_disciplina
 AFTER UPDATE
 AS
@@ -964,18 +945,8 @@ BEGIN
 	END
 END
 
-SELECT * FROM v_professor
-SELECT * from v_aluno_chamada
-SELECT * FROM v_dispensas
-SELECT * FROM aula
-SELECT * FROM conteudo
-SELECT * FROM matricula_disciplina
-
-
 -- IND04 - Inserções para teste
 --------------------------------------------------------------------------------------
-
-select * From aluno
 
 -- Valores de teste para tabela Curso
 INSERT INTO curso VALUES
@@ -1081,7 +1052,6 @@ INSERT INTO disciplina VALUES
 INSERT INTO conteudo VALUES
 (1001001, 'Aula Introdutoria', 1001),
 (1001002, 'Projeto Spring', 1001)
-
 
 -- Inserts para a tabela aluno
 INSERT INTO aluno (cpf, ra, nome, nome_social, data_nasc, telefone_celular, telefone_residencial, email_pessoal, email_corporativo, data_segundograu, instituicao_segundograu, pontuacao_vestibular, posicao_vestibular, ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo, data_primeiramatricula)

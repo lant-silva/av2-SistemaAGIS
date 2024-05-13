@@ -57,6 +57,7 @@ public class AulaDao implements IAula{
 		return saida;
 	}
 	
+	
 	public boolean verificarAulaExistente(int disciplina, String dataAula) throws SQLException, ClassNotFoundException{
 		Connection c = gDao.getConnection();
 		String sql = "CALL sp_verificaraula(?,?,?)";
