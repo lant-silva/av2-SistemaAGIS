@@ -100,10 +100,6 @@ public class MatriculaController{
 		return mdDao.consultarUltimaMatricula(ra);
 	}
 	
-	private String[] getCheckbox(@RequestParam(name="disciplinasSelecionadas") String disciplinas) {
-		return disciplinas.split(",");
-	}
-
 	private boolean validarDataMatricula(String dataMatricula) {
 		Date dataSql = Date.valueOf(dataMatricula);
 		boolean validacao = false;

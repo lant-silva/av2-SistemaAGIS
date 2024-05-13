@@ -15,6 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import br.edu.fateczl.SpringAGIS.model.Aluno;
 import br.edu.fateczl.SpringAGIS.model.Disciplina;
+import br.edu.fateczl.SpringAGIS.model.Dispensa;
 import br.edu.fateczl.SpringAGIS.persistence.AlunoDao;
 import br.edu.fateczl.SpringAGIS.persistence.DisciplinaDao;
 import br.edu.fateczl.SpringAGIS.persistence.DispensaDao;
@@ -44,6 +45,7 @@ public class DispensaController {
 		return new ModelAndView("dispensa");
 	}
 	
+	
 	@RequestMapping(name="dispensa", value="/dispensa", method = RequestMethod.POST)
 	public ModelAndView dispensaPost(@RequestParam Map<String, String> allRequestParam, ModelMap model) {
 		String cmd = allRequestParam.get("botao");
@@ -57,12 +59,14 @@ public class DispensaController {
 		Aluno a = new Aluno();
 		Disciplina d = new Disciplina();
 		List<Disciplina> disciplinas = new ArrayList<>();
-		 
+		List<Dispensa> dispensas = new ArrayList<>();
+		
 		try {
 			a.setRa(ra);
 			if(cmd.contains("Consultar Aluno")) {
 				a = buscarAluno(a);				
 				disciplinas = listarDisciplinas(ra);
+				dispensas = listarDispensas(ra);
 				found = true;
 			}
 			if(cmd.contains("Solicitar Dispensa")) {
@@ -80,8 +84,13 @@ public class DispensaController {
 			model.addAttribute("disciplina", d);
 			model.addAttribute("aluno", a);
 			model.addAttribute("found", found);
+			model.addAttribute("dispensas", dispensas);
 		}
 		return new ModelAndView("dispensa");
+	}
+
+	private List<Dispensa> listarDispensas(String ra) throws ClassNotFoundException, SQLException {
+		return disDao.listarPorAluno(ra);
 	}
 
 	private String solicitarDispensa(Aluno a, Disciplina d, String motivo) throws ClassNotFoundException, SQLException {

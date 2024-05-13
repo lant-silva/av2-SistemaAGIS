@@ -84,7 +84,7 @@ public class DispensaDao {
     public List<Dispensa> listar() throws SQLException, ClassNotFoundException {
         List<Dispensa> dispensas = new ArrayList<>();
         Connection c = gDao.getConnection();
-        String sql = "SELECT * FROM v_dispensas";
+        String sql = "SELECT * FROM v_dispensas WHERE estado = 'Em andamento'";
         PreparedStatement ps = c.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {
@@ -106,4 +106,32 @@ public class DispensaDao {
         c.close();
         return dispensas;
     }
+
+	public List<Dispensa> listarPorAluno(String ra) throws SQLException, ClassNotFoundException{
+        List<Dispensa> dispensas = new ArrayList<>();
+        Connection c = gDao.getConnection();
+        String sql = "SELECT * FROM v_dispensas WHERE aluno_ra = ?";
+        PreparedStatement ps = c.prepareStatement(sql);
+        ps.setString(1, ra);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Dispensa d = new Dispensa();
+            Aluno a = new Aluno();
+            a.setRa(rs.getString("aluno_ra"));
+            a.setNome(rs.getString("aluno_nome"));
+            Disciplina di = new Disciplina();
+            di.setCodigo(rs.getInt("codigo_disciplina"));
+            di.setNome(rs.getString("disciplina_nome"));
+            d.setNomeCurso(rs.getString("curso_nome"));
+            d.setAluno(a);
+            d.setDisciplina(di);
+            d.setMotivo(rs.getString("motivo"));
+            d.setEstado(rs.getString("estado"));
+            dispensas.add(d);
+        }
+        rs.close();
+        ps.close();
+        c.close();
+        return dispensas;
+	}
 }

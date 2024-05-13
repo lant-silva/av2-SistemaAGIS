@@ -10,4 +10,5 @@ public class Dispensa {
 	Disciplina disciplina;
 	String nomeCurso;
 	String motivo;
+	String estado;
 }

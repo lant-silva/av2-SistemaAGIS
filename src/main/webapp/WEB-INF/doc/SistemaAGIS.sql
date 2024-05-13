@@ -118,7 +118,8 @@ GO
 CREATE TABLE dispensa(
 aluno_ra				CHAR(9)			NOT NULL,
 codigo_disciplina		INT				NOT NULL,
-motivo					VARCHAR(200)	NOT NULL
+motivo					VARCHAR(200)	NOT NULL,
+estado					VARCHAR(200)	NOT NULL
 PRIMARY KEY(aluno_ra, codigo_disciplina)
 FOREIGN KEY(aluno_ra) REFERENCES aluno(ra),
 FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
@@ -187,6 +188,70 @@ BEGIN
 	SET @valido = 0
 END
 
+CREATE TRIGGER t_validarcpf ON aluno
+AFTER INSERT
+AS
+BEGIN
+	DECLARE @cpf CHAR(9)
+	SELECT @cpf = cpf FROM INSERTED
+
+	DECLARE @soma1 INT,
+	@soma2 INT,
+	@cont INT,
+	@digito1 INT,
+	@digito2 INT
+
+	SET @cont = 1
+	SET @soma1 = 0
+	SET @soma2 = 0
+
+	IF LEN(@cpf) <> 11
+	BEGIN
+		ROLLBACK TRANSACTION
+		RAISERROR('CPF Inválido', 16, 1)
+		RETURN
+	END
+
+	WHILE(@cont <= 9)	
+	BEGIN 
+		SET @soma1 = @soma1 + (CAST(SUBSTRING(@cpf, @cont, 1) AS INT) * (11 - @cont))
+		SET @cont = @cont + 1
+	END
+	SET @cont = 1
+	WHILE(@cont <= 10)
+	BEGIN
+		SET @soma2 = @soma2 + (CAST(SUBSTRING(@cpf, @cont, 1) AS INT) * (12 - @cont))
+		SET @cont = @cont + 1
+	END
+	IF((@soma1 % 11) <  2)
+	BEGIN
+		SET @digito1 = 0
+	END
+	ELSE
+	BEGIN
+		SET @digito1 = 11 - (@soma1 % 11)
+	END
+
+	IF((@soma2 % 11) < 2)
+	BEGIN
+		SET @digito2 = 0
+	END
+	ELSE
+	BEGIN
+		SET @digito2 = 11 - (@soma2 % 11)
+	END
+	IF @digito1 = CAST(SUBSTRING(@cpf, 10, 1) AS INT) AND @digito2 = CAST(SUBSTRING(@cpf, 11, 1) AS INT)
+	BEGIN
+		RETURN
+	END
+	ELSE
+	BEGIN
+		ROLLBACK TRANSACTION
+		RAISERROR('CPF Inválido', 16, 1)
+		RETURN
+	END
+END
+
 -- Procedure de validação da idade
 ------------------------------------------------------------------------------------
 
@@ -207,6 +272,20 @@ BEGIN
 	SET @valido = 1
 END
 -- Fim da procedure
+
+CREATE TRIGGER t_validaridade ON aluno
+AFTER INSERT, UPDATE
+AS
+BEGIN
+	DECLARE @dtnasc DATE
+	SELECT @dtnasc = data_nasc FROM INSERTED
+	IF((DATEDIFF(YEAR,@dtnasc,GETDATE()) < 16) OR (DATEDIFF(YEAR,@dtnasc,GETDATE()) > 120))
+	BEGIN
+		ROLLBACK TRANSACTION
+		RAISERROR('Data de nascimento inválida', 16, 1)
+		RETURN
+	END
+END
 
 -- Procedure de geração do RA
 --------------------------------------------------------------------------------------------
@@ -304,26 +383,6 @@ DECLARE @anoingresso CHAR(4) = 0
 DECLARE @semestreingresso CHAR(1) = 0
 
 SET @turno = 'Tarde'
--- Validar CPF
-
--- Se o cpf é válido
-EXEC sp_validarcpf @cpf, @cpfvalido OUTPUT 
-PRINT @cpfvalido
-IF(@cpfvalido = 0)
-BEGIN 
-	RAISERROR('CPF inválido', 16, 1)
-	RETURN
-END
-
--- Validar Idade
-
-EXEC sp_validaridade @datanasc, @idadevalida OUTPUT 
-PRINT @idadevalida
-IF(@idadevalida = 0)
-BEGIN 
-	RAISERROR('Idade inválida', 16 ,1)
-	RETURN
-END
 
 -- Gerar o ano/semestre de ingresso do aluno
 EXEC sp_geraringresso @anoingresso OUTPUT, @semestreingresso OUTPUT
@@ -370,7 +429,6 @@ BEGIN
 		 @cursocodigo,
 		 GETDATE(),
 		 @turno)
-		 -- adicionar data primeira matricula
 		 EXEC sp_gerarmatricula @ra, @codigomatricula
 		 SET @saida = 'Aluno inserido'
 	END
@@ -576,10 +634,10 @@ BEGIN
 	END
 END
 
-CREATE  PROCEDURE sp_alunodispensa(@alunora CHAR(9), @codigodisciplina INT, @motivo VARCHAR(200), @saida VARCHAR(200) OUTPUT)
+CREATE PROCEDURE sp_alunodispensa(@alunora CHAR(9), @codigodisciplina INT, @motivo VARCHAR(200), @saida VARCHAR(200) OUTPUT)
 AS
 BEGIN
-	IF EXISTS(SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina)
+	IF EXISTS(SELECT * FROM dispensa WHERE aluno_ra = @alunora AND codigo_disciplina = @codigodisciplina AND estado = 'Em andamento')
 	BEGIN
 		RAISERROR('Disciplina já possui dispensa pendente', 16, 1)
 		RETURN
@@ -587,7 +645,7 @@ BEGIN
 	ELSE
 	BEGIN
 		INSERT INTO dispensa VALUES
-		(@alunora, @codigodisciplina, @motivo)
+		(@alunora, @codigodisciplina, @motivo, 'Em andamento')
 		SET @saida = 'Dispensa solicitada'
 	END
 END
@@ -609,17 +667,19 @@ BEGIN
 		WHERE codigo_matricula = @codigomatricula
 			AND codigo_disciplina = @codigodisciplina
 
-            DELETE FROM dispensa
-            WHERE aluno_ra = @alunora
-            AND codigo_disciplina = @codigodisciplina
+		UPDATE dispensa
+		SET estado = 'Disciplina dispensada'
+		WHERE aluno_ra = @alunora
+		AND codigo_disciplina = @codigodisciplina
 
-            SET @saida = 'Pedido de dispensa aprovado com sucesso'
+        SET @saida = 'Pedido de dispensa aprovado com sucesso'
         END
         ELSE IF @aprovacao = 'Recusar' OR @aprovacao = 'Reprovar'
         BEGIN
-            DELETE FROM dispensa
-            WHERE aluno_ra = @alunora
-            AND codigo_disciplina = @codigodisciplina
+          
+		UPDATE dispensa
+		SET estado = 'Pedido de dispensa recusado'
+		WHERE aluno_ra = @alunora
 		AND codigo_disciplina = @codigodisciplina
 
             SET @saida = 'Pedido de dispensa recusado com sucesso'
@@ -907,7 +967,7 @@ WHERE d.curso_codigo = c.codigo
 
 CREATE VIEW v_dispensas
 AS
-SELECT d.aluno_ra AS aluno_ra, d.codigo_disciplina AS codigo_disciplina, d.motivo AS motivo, a.nome AS aluno_nome, c.nome AS curso_nome, di.nome AS disciplina_nome
+SELECT d.aluno_ra AS aluno_ra, d.codigo_disciplina AS codigo_disciplina, d.motivo AS motivo, a.nome AS aluno_nome, c.nome AS curso_nome, di.nome AS disciplina_nome, d.estado AS estado
 FROM dispensa d, aluno a, disciplina di, curso c
 WHERE a.ra = d.aluno_ra
 	AND di.codigo = d.codigo_disciplina

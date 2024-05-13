@@ -44,8 +44,8 @@
 			</c:if>
 		</div>
 		</br>
-		<div align="center">
 			<c:if test="${not empty aluno }">
+		<div align="center" class="container">
 				<table class="table_round">
 					<thead>
 						<tr>
@@ -93,8 +93,8 @@
 						</c:forEach>
 					</tbody>
 				</table>
-			</c:if>
 		</div>
+			</c:if>
 	</form>
 </body>
 </html>
