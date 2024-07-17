@@ -192,7 +192,7 @@ CREATE TRIGGER t_validarcpf ON aluno
 AFTER INSERT
 AS
 BEGIN
-	DECLARE @cpf CHAR(9)
+	DECLARE @cpf CHAR(11)
 	SELECT @cpf = cpf FROM INSERTED
 
 	DECLARE @soma1 INT,
@@ -208,7 +208,7 @@ BEGIN
 	IF LEN(@cpf) <> 11
 	BEGIN
 		ROLLBACK TRANSACTION
-		RAISERROR('CPF Inválido', 16, 1)
+		RAISERROR('CPF Inválido - não tem 11 numeros', 16, 1)
 		RETURN
 	END
 
@@ -247,7 +247,7 @@ BEGIN
 	ELSE
 	BEGIN
 		ROLLBACK TRANSACTION
-		RAISERROR('CPF Inválido', 16, 1)
+		RAISERROR('CPF Inválido - valores invalidos', 16, 1)
 		RETURN
 	END
 END
@@ -1020,7 +1020,13 @@ INSERT INTO professor VALUES
 (1003, 'Adriana Bastos', 'Doutora'),
 (1004, 'Henrique Galvão', 'Mestre'),
 (1005, 'Ulisses Santos Barbosa', 'Doutor'),
-(1006, 'Pedro Guimarães', 'Mestre')
+(1006, 'Pedro Guimarães', 'Mestre'),
+(1007, 'Reinaldo Santos', 'Doutor'),
+(1008, 'Pedro Lima', 'Mestre'),
+(1009, 'Marcelo Soares', 'Doutor'),
+(1010, 'Costa Lima de Souza', 'Mestre'),
+(1011, 'Gabriela Gonçalves', 'Doutora'),
+(1012, 'Yasmin Ribeiro', 'Mestre')
 
 
 -- Valores de teste para tabela Disciplina
@@ -1068,46 +1074,46 @@ INSERT INTO disciplina VALUES
 (1040, 'Programação para Mainframes', 4, '14:50', '18:20', 'Quarta', 101, 1004)
 
 INSERT INTO disciplina VALUES
-(1041, 'Desenvolvimento de Aplicações Distribuídas', 4, '13:00', '16:30', 'Segunda', 102),
-(1042, 'Segurança de Aplicações Web', 4, '13:00', '16:30', 'Segunda', 102),
-(1043, 'Banco de Dados NoSQL', 4, '13:00', '16:30', 'Terça', 102),
-(1044, 'Gerenciamento de Projetos de Software Ágil', 4, '13:00', '16:30', 'Terça', 102),
-(1045, 'Desenvolvimento de Aplicações Móveis', 4, '13:00', '16:30', 'Quarta', 102),
-(1046, 'Desenvolvimento de APIs', 2, '13:00', '14:40', 'Quarta', 102),
-(1047, 'Modelagem de Dados', 4, '13:00', '16:30', 'Quinta', 102),
-(1048, 'Arquitetura de Software Distribuído', 4, '13:00', '16:30', 'Quinta', 102),
-(1049, 'Engenharia de Requisitos Avançada', 4, '13:00', '16:30', 'Sexta', 102),
-(1050, 'Metodologias Ágeis', 2, '13:00', '14:40', 'Sexta', 102),
-(1051, 'Desenvolvimento de Interfaces Gráficas', 4, '14:50', '18:20', 'Segunda', 102),
-(1052, 'Auditoria de Sistemas', 4, '14:50', '18:20', 'Segunda', 102),
-(1053, 'Administração de Bancos de Dados', 4, '14:50', '18:20', 'Terça', 102),
-(1054, 'Gestão de Projetos de TI', 4, '14:50', '18:20', 'Terça', 102),
-(1055, 'Desenvolvimento de Jogos Digitais', 4, '14:50', '18:20', 'Quarta', 102),
-(1056, 'Segurança de Redes', 2, '14:50', '16:30', 'Quarta', 102),
-(1057, 'Mineração de Dados', 4, '14:50', '18:20', 'Quinta', 102),
-(1058, 'Arquitetura de Software Orientada a Serviços', 4, '14:50', '18:20', 'Quinta', 102),
-(1059, 'Análise de Negócios em TI', 4, '14:50', '18:20', 'Sexta', 102),
-(1060, 'DevOps', 2, '14:50', '16:30', 'Sexta', 102),
-(1061, 'Desenvolvimento de Sistemas Embarcados', 2, '16:40', '18:20', 'Segunda', 102),
-(1062, 'Criptografia e Segurança de Dados', 2, '16:40', '18:20', 'Segunda', 102),
-(1063, 'Big Data Analytics', 2, '16:40', '18:20', 'Terça', 102),
-(1064, 'Gerenciamento Ágil de Projetos', 2, '16:40', '18:20', 'Terça', 102),
-(1065, 'Desenvolvimento de Aplicações Desktop', 2, '16:40', '18:20', 'Quarta', 102),
-(1066, 'Segurança em IoT', 2, '16:40', '18:20', 'Quarta', 102),
-(1067, 'Banco de Dados Geoespaciais', 2, '16:40', '18:20', 'Quinta', 102),
-(1068, 'Arquitetura de Microserviços', 2, '16:40', '18:20', 'Quinta', 102),
-(1069, 'Engenharia de Requisitos Elicitação e Análise', 2, '16:40', '18:20', 'Sexta', 102),
-(1070, 'Scrum e Métodos Ágeis', 2, '16:40', '18:20', 'Sexta', 102),
-(1071, 'Desenvolvimento de Aplicações Híbridas', 4, '13:00', '16:30', 'Segunda', 102),
-(1072, 'Análise de Riscos em Segurança da Informação', 4, '13:00', '16:30', 'Segunda', 102),
-(1073, 'Banco de Dados Distribuídos', 4, '13:00', '16:30', 'Terça', 102),
-(1074, 'Gestão de Projetos de Desenvolvimento de Software', 4, '13:00', '16:30', 'Terça', 102),
-(1075, 'Desenvolvimento de Aplicações para Dispositivos Móveis', 4, '13:00', '16:30', 'Quarta', 102),
-(1076, 'Segurança da Informação em Cloud Computing', 2, '13:00', '14:40', 'Quarta', 102),
-(1077, 'Data Science Aplicado', 4, '13:00', '16:30', 'Quinta', 102),
-(1078, 'Arquitetura de Microsserviços Distribuídos', 4, '13:00', '16:30', 'Quinta', 102),
-(1079, 'Engenharia de Requisitos para Sistemas Distribuídos', 4, '13:00', '16:30', 'Sexta', 102),
-(1080, 'Kanban e Lean para Desenvolvimento de Software', 2, '13:00', '14:40', 'Sexta', 102)
+(1041, 'Desenvolvimento de Aplicações Distribuídas', 4, '13:00', '16:30', 'Segunda', 102, 1006),
+(1042, 'Segurança de Aplicações Web', 4, '13:00', '16:30', 'Segunda', 102, 1006),
+(1043, 'Banco de Dados NoSQL', 4, '13:00', '16:30', 'Terça', 102, 1006),
+(1044, 'Gerenciamento de Projetos de Software Ágil', 4, '13:00', '16:30', 'Terça', 102, 1007),
+(1045, 'Desenvolvimento de Aplicações Móveis', 4, '13:00', '16:30', 'Quarta', 102, 1012),
+(1046, 'Desenvolvimento de APIs', 2, '13:00', '14:40', 'Quarta', 102, 1011),
+(1047, 'Modelagem de Dados', 4, '13:00', '16:30', 'Quinta', 102, 1011),
+(1048, 'Arquitetura de Software Distribuído', 4, '13:00', '16:30', 'Quinta', 102, 1011),
+(1049, 'Engenharia de Requisitos Avançada', 4, '13:00', '16:30', 'Sexta', 102, 1010),
+(1050, 'Metodologias Ágeis', 2, '13:00', '14:40', 'Sexta', 102, 1010),
+(1051, 'Desenvolvimento de Interfaces Gráficas', 4, '14:50', '18:20', 'Segunda', 102, 1010),
+(1052, 'Auditoria de Sistemas', 4, '14:50', '18:20', 'Segunda', 102, 1010),
+(1053, 'Administração de Bancos de Dados', 4, '14:50', '18:20', 'Terça', 102, 1009),
+(1054, 'Gestão de Projetos de TI', 4, '14:50', '18:20', 'Terça', 102, 1009),
+(1055, 'Desenvolvimento de Jogos Digitais', 4, '14:50', '18:20', 'Quarta', 102, 1009),
+(1056, 'Segurança de Redes', 2, '14:50', '16:30', 'Quarta', 102, 1008),
+(1057, 'Mineração de Dados', 4, '14:50', '18:20', 'Quinta', 102, 1008),
+(1058, 'Arquitetura de Software Orientada a Serviços', 4, '14:50', '18:20', 'Quinta', 102, 1006),
+(1059, 'Análise de Negócios em TI', 4, '14:50', '18:20', 'Sexta', 102, 1007),
+(1060, 'DevOps', 2, '14:50', '16:30', 'Sexta', 102, 1007),
+(1061, 'Desenvolvimento de Sistemas Embarcados', 2, '16:40', '18:20', 'Segunda', 102, 1007),
+(1062, 'Criptografia e Segurança de Dados', 2, '16:40', '18:20', 'Segunda', 102, 1007),
+(1063, 'Big Data Analytics', 2, '16:40', '18:20', 'Terça', 102, 1007),
+(1064, 'Gerenciamento Ágil de Projetos', 2, '16:40', '18:20', 'Terça', 102, 1008),
+(1065, 'Desenvolvimento de Aplicações Desktop', 2, '16:40', '18:20', 'Quarta', 102, 1008),
+(1066, 'Segurança em IoT', 2, '16:40', '18:20', 'Quarta', 102, 1008),
+(1067, 'Banco de Dados Geoespaciais', 2, '16:40', '18:20', 'Quinta', 102, 1008),
+(1068, 'Arquitetura de Microserviços', 2, '16:40', '18:20', 'Quinta', 102, 1009),
+(1069, 'Engenharia de Requisitos Elicitação e Análise', 2, '16:40', '18:20', 'Sexta', 102, 1009),
+(1070, 'Scrum e Métodos Ágeis', 2, '16:40', '18:20', 'Sexta', 102, 1009),
+(1071, 'Desenvolvimento de Aplicações Híbridas', 4, '13:00', '16:30', 'Segunda', 102, 1007),
+(1072, 'Análise de Riscos em Segurança da Informação', 4, '13:00', '16:30', 'Segunda', 102, 1007),
+(1073, 'Banco de Dados Distribuídos', 4, '13:00', '16:30', 'Terça', 102, 1008),
+(1074, 'Gestão de Projetos de Desenvolvimento de Software', 4, '13:00', '16:30', 'Terça', 102, 1009),
+(1075, 'Desenvolvimento de Aplicações para Dispositivos Móveis', 4, '13:00', '16:30', 'Quarta', 102, 1009),
+(1076, 'Segurança da Informação em Cloud Computing', 2, '13:00', '14:40', 'Quarta', 102, 1010),
+(1077, 'Data Science Aplicado', 4, '13:00', '16:30', 'Quinta', 102, 1011),
+(1078, 'Arquitetura de Microsserviços Distribuídos', 4, '13:00', '16:30', 'Quinta', 102, 1012),
+(1079, 'Engenharia de Requisitos para Sistemas Distribuídos', 4, '13:00', '16:30', 'Sexta', 102, 1012),
+(1080, 'Kanban e Lean para Desenvolvimento de Software', 2, '13:00', '14:40', 'Sexta', 102, 1012)
 
 INSERT INTO conteudo VALUES
 (1001001, 'Aula Introdutoria', 1001),
